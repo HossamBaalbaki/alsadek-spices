@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "site_settings" ADD COLUMN     "promoActive" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "promoCode" TEXT DEFAULT 'WELCOME10',
+ADD COLUMN     "promoPercent" DOUBLE PRECISION NOT NULL DEFAULT 10;

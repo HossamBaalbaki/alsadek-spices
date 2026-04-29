@@ -1,0 +1,25 @@
+# Delivery Settings Refactor TODO
+
+- [x] Plan approved by user
+- [ ] Create admin delivery-zones APIs
+  - [ ] `src/app/api/admin/delivery-zones/route.js` (GET all incl inactive)
+  - [ ] `src/app/api/admin/delivery-zones/[id]/route.js` (PUT zone update)
+- [ ] Create admin page `src/app/admin/delivery-settings/page.js`
+  - [ ] Load zones + freeDeliveryThreshold
+  - [ ] Edit/save zones
+  - [ ] Edit/save threshold
+- [ ] Update admin sidebar
+  - [ ] Add `/admin/delivery-settings` nav item in `src/app/admin/layout.js`
+- [ ] Remove threshold field from general settings page
+  - [ ] `src/app/admin/settings/page.js`
+- [ ] Switch cart to DB-backed zones + threshold
+  - [ ] `src/context/CartContext.js`
+  - [ ] lazy localStorage initialization to avoid effect setState lint warning
+- [ ] Enforce zone selection before checkout from cart
+  - [ ] `src/app/cart/page.js` disable/protect checkout action
+- [ ] Keep public zones endpoint consistent
+  - [ ] `src/app/api/delivery-zones/route.js` sorting/safe output as needed
+- [ ] Critical-path verification
+  - [ ] admin delivery settings save flow
+  - [ ] cart uses updated threshold/zones
+  - [ ] checkout blocked until zone selected

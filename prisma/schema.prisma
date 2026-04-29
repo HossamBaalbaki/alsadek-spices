@@ -1,0 +1,265 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id            Int       @id @default(autoincrement())
+  slug          String    @unique
+  nameEn        String
+  nameAr        String
+  descriptionEn String?
+  descriptionAr String?
+  image         String?
+  icon          String?
+  productCount  Int       @default(0)
+  active        Boolean   @default(true)
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  products      Product[]
+  stocks        Stock[]
+
+  @@map("categories")
+}
+
+// ─── STOCK (admin-only inventory) ───────────────────────────
+// All weights stored in grams internally.
+model Stock {
+  id                     Int            @id @default(autoincrement())
+  nameEn                 String
+  nameAr                 String
+  descriptionEn          String?
+  descriptionAr          String?
+  images                 String[]
+  categoryId             Int?
+  category               Category?      @relation(fields: [categoryId], references: [id])
+
+  // Latest purchase unit (for display only)
+  purchaseUnit           String         // "gram" | "kilogram" | "ton"
+  purchaseQuantity       Float          // quantity of the most recent purchase in `purchaseUnit`
+  purchasePrice          Float          // total cost paid for the most recent purchase (in QAR)
+
+  // Aggregates (grams + cost per gram weighted average)
+  costPerGram            Float          @default(0)
+  sellPricePerGram       Float          @default(0)
+  currentStockGrams      Float          @default(0)
+  totalStockGrams        Float          @default(0)
+  lowStockThresholdGrams Float          @default(500)
+
+  active                 Boolean        @default(true)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+
+  restocks               StockRestock[]
+  products               Product[]
+  bundleItems            BundleItem[]
+
+  @@map("stocks")
+}
+
+model StockRestock {
+  id            Int      @id @default(autoincrement())
+  stockId       Int
+  stock         Stock    @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  addedGrams    Float
+  purchasePrice Float
+  purchaseUnit  String
+  purchaseQty   Float
+  createdAt     DateTime @default(now())
+
+  @@map("stock_restocks")
+}
+
+model Product {
+  id            Int         @id @default(autoincrement())
+  slug          String      @unique
+  nameEn        String
+  nameAr        String
+  descriptionEn String?
+  descriptionAr String?
+  images        String[]
+  type          String      @default("single") // "single" | "bundle"
+
+  // For type = single: link to a single Stock entry; variants define sellable gram sizes.
+  stockId       Int?
+  stock         Stock?      @relation(fields: [stockId], references: [id])
+
+  // For type = bundle: admin-set sell price (cost computed from linked BundleItems).
+  price         Float?
+  originalPrice Float?
+
+  // variants = [{ weightLabel: "100g", grams: 100 }, ...] for single products
+  variants      Json?
+
+  categoryId    Int
+  category      Category    @relation(fields: [categoryId], references: [id])
+
+  bundleStock   Int         @default(0)
+
+  labels        Json?
+  rating        Float       @default(0)
+  reviewCount   Int         @default(0)
+  active        Boolean     @default(true)
+  featured      Boolean     @default(false)
+  bestSeller    Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  orderItems    OrderItem[]
+  reviews       Review[]
+  bundleItems   BundleItem[]
+
+  @@map("products")
+}
+
+// For bundle products: which stock items + how many grams each unit bundle contains
+model BundleItem {
+  id           Int     @id @default(autoincrement())
+  productId    Int
+  product      Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  stockId      Int
+  stock        Stock   @relation(fields: [stockId], references: [id])
+  gramsPerUnit Float
+
+  @@map("bundle_items")
+}
+
+model Customer {
+  id        Int      @id @default(autoincrement())
+  firstName String
+  lastName  String
+  phone     String
+  email     String?
+  address   String?
+  building  String?
+  floor     String?
+  apartment String?
+  city      String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+
+  @@map("customers")
+}
+
+model Order {
+  id             Int         @id @default(autoincrement())
+  orderNumber    String      @unique
+  customerId     Int
+  customer       Customer    @relation(fields: [customerId], references: [id])
+  items          OrderItem[]
+  subtotal       Float
+  deliveryFee    Float       @default(0)
+  discountAmount Float       @default(0)
+  grandTotal     Float
+  paymentMethod  String      @default("cash")
+  paymentStatus  String      @default("pending")
+  status         String      @default("pending")
+  deliveryZone   String?
+  promoCode      String?
+  notes          String?
+  stockRestored  Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id             Int     @id @default(autoincrement())
+  orderId        Int
+  order          Order   @relation(fields: [orderId], references: [id])
+  productId      Int
+  product        Product @relation(fields: [productId], references: [id])
+  nameEn         String
+  nameAr         String
+  price          Float
+  quantity       Int
+  weight         String?
+  grams          Float?  // grams per single unit of this line (for single: variant grams; for bundle: sum of bundle items grams)
+  gramsDeducted  Float?  // total grams deducted from stock for this line (grams * quantity) — for single items
+  // For bundle items, stock deduction is tracked per-stock in a JSON blob
+  bundleBreakdown Json?  // [{ stockId, gramsPerUnit, gramsDeducted }]
+  type           String  @default("single")
+
+  @@map("order_items")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  name      String
+  rating    Int
+  text      String?
+  verified  Boolean  @default(false)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("reviews")
+}
+
+model PromoCode {
+  id        Int       @id @default(autoincrement())
+  code      String    @unique
+  type      String
+  value     Float
+  minOrder  Float     @default(0)
+  maxUses   Int?
+  usedCount Int       @default(0)
+  active    Boolean   @default(true)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@map("promo_codes")
+}
+
+model DeliveryZone {
+  id              Int     @id @default(autoincrement())
+  nameEn          String
+  nameAr          String
+  price           Float
+  estimatedTime   String
+  estimatedTimeAr String
+  active          Boolean @default(true)
+  sortOrder       Int     @default(0)
+
+  @@map("delivery_zones")
+}
+
+model SiteSetting {
+  id              Int      @id @default(1)
+  topBannerEn     String
+  topBannerAr     String
+  promoTitleEn    String
+  promoTitleAr    String
+  promoSubtitleEn String
+  promoSubtitleAr String
+  promoCode              String?  @default("WELCOME10")
+  promoPercent           Float    @default(10)
+  promoActive            Boolean  @default(true)
+  freeDeliveryThreshold  Float    @default(200)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+model AdminUser {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("admin")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admin_users")
+}

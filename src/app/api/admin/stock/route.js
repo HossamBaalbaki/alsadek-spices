@@ -33,6 +33,7 @@ export async function GET(request) {
         category: {
           select: { id: true, slug: true, nameEn: true, nameAr: true },
         },
+        pricingRule: { select: { markupPercent: true } },
         _count: { select: { restocks: true, products: true, bundleItems: true } },
       },
     });
@@ -75,7 +76,6 @@ export async function POST(request) {
       purchaseUnit,
       purchaseQuantity,
       purchasePrice,
-      sellPricePerGram,
       lowStockThresholdGrams,
       active,
     } = body;
@@ -95,7 +95,6 @@ export async function POST(request) {
     }
     const qty = Number(purchaseQuantity);
     const price = Number(purchasePrice);
-    const sellPerG = Number(sellPricePerGram);
     if (!qty || qty <= 0) {
       return NextResponse.json(
         { success: false, message: "Purchase quantity must be > 0" },
@@ -108,27 +107,9 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-    if (!sellPerG || sellPerG <= 0) {
-      return NextResponse.json(
-        { success: false, message: "Sell price per gram must be > 0" },
-        { status: 400 }
-      );
-    }
 
     const totalGrams = unitToGrams(qty, purchaseUnit);
     const costPerGram = computeCostPerGram(price, qty, purchaseUnit);
-
-    if (sellPerG < costPerGram) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `Sell price per gram (${sellPerG}) cannot be below cost per gram (${costPerGram.toFixed(
-            4
-          )})`,
-        },
-        { status: 400 }
-      );
-    }
 
     const stock = await prisma.stock.create({
       data: {
@@ -142,7 +123,6 @@ export async function POST(request) {
         purchaseQuantity: qty,
         purchasePrice: price,
         costPerGram,
-        sellPricePerGram: sellPerG,
         currentStockGrams: totalGrams,
         totalStockGrams: totalGrams,
         lowStockThresholdGrams:

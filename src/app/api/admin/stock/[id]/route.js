@@ -70,40 +70,11 @@ export async function PUT(request, context) {
       allowed.images = Array.isArray(body.images) ? body.images : [];
     if (body.categoryId !== undefined)
       allowed.categoryId = body.categoryId ? Number(body.categoryId) : null;
-    if (body.sellPricePerGram !== undefined) {
-      const val = Number(body.sellPricePerGram);
-      if (val <= 0) {
-        return NextResponse.json(
-          { success: false, message: "Sell price per gram must be > 0" },
-          { status: 400 }
-        );
-      }
-      allowed.sellPricePerGram = val;
-    }
     if (body.lowStockThresholdGrams !== undefined) {
       const val = Number(body.lowStockThresholdGrams);
       allowed.lowStockThresholdGrams = val > 0 ? val : 500;
     }
     if (body.active !== undefined) allowed.active = Boolean(body.active);
-
-    // Optional guard: do not allow sellPricePerGram below cost
-    if (allowed.sellPricePerGram !== undefined) {
-      const current = await prisma.stock.findUnique({
-        where: { id: parseInt(id) },
-        select: { costPerGram: true },
-      });
-      if (current && allowed.sellPricePerGram < Number(current.costPerGram)) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: `Sell price per gram cannot be below cost per gram (${Number(
-              current.costPerGram
-            ).toFixed(4)}).`,
-          },
-          { status: 400 }
-        );
-      }
-    }
 
     const stock = await prisma.stock.update({
       where: { id: parseInt(id) },

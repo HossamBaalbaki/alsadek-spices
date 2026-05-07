@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePolling } from "@/hooks/usePolling";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
@@ -9,12 +10,8 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    fetchOrders();
-  }, [statusFilter]);
-
-  const fetchOrders = async () => {
-    setLoading(true);
+  const fetchOrders = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const token = localStorage.getItem("adminToken");
       const params = new URLSearchParams();
@@ -29,9 +26,15 @@ export default function AdminOrdersPage() {
     } catch (error) {
       console.error("Fetch orders error:", error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchOrders();
+  }, [statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  usePolling(() => fetchOrders(true), 15000);
 
   const updateStatus = async (orderId, newStatus) => {
     try {

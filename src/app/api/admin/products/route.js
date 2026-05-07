@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 import {
-  validateSaleAgainstCost,
+  validateVariantPricesAgainstCost,
   validateBundleSaleAgainstCost,
   parseWeightLabelToGrams,
+  computeMarkupPercent,
 } from "@/lib/stock";
 
 const verifyToken = (request) => {
@@ -26,9 +27,10 @@ const normalizeVariants = (variants) => {
     .map((v) => {
       const weightLabel = String(v.weightLabel || v.weight || "").trim();
       const grams = Number(v.grams) || parseWeightLabelToGrams(weightLabel);
-      return { weightLabel, grams };
+      const price = Number(v.price) || 0;
+      return { weightLabel, grams, price };
     })
-    .filter((v) => v.weightLabel && v.grams > 0);
+    .filter((v) => v.weightLabel && v.grams > 0 && v.price > 0);
 };
 
 export async function GET(request) {
@@ -52,7 +54,6 @@ export async function GET(request) {
             id: true,
             nameEn: true,
             nameAr: true,
-            sellPricePerGram: true,
             costPerGram: true,
             currentStockGrams: true,
           },
@@ -156,14 +157,14 @@ export async function POST(request) {
         );
       }
 
-      const saleCheck = validateSaleAgainstCost({
-        sellPricePerGram: stock.sellPricePerGram,
+      const variantCheck = validateVariantPricesAgainstCost({
+        variants: normalizedVariants,
         costPerGram: stock.costPerGram,
         salePercent: labels?.salePercent || 0,
       });
-      if (!saleCheck.ok) {
+      if (!variantCheck.ok) {
         return NextResponse.json(
-          { success: false, message: saleCheck.message },
+          { success: false, message: variantCheck.message },
           { status: 400 }
         );
       }
@@ -196,13 +197,20 @@ export async function POST(request) {
               id: true,
               nameEn: true,
               nameAr: true,
-              sellPricePerGram: true,
               costPerGram: true,
               currentStockGrams: true,
             },
           },
           bundleItems: true,
         },
+      });
+
+      // Learn the markup from accepted variant prices
+      const markup = computeMarkupPercent(normalizedVariants, stock.costPerGram);
+      await prisma.pricingRule.upsert({
+        where: { stockId: Number(stockId) },
+        update: { markupPercent: markup },
+        create: { stockId: Number(stockId), markupPercent: markup },
       });
 
       return NextResponse.json({

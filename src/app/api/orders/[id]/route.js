@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAdmin, unauthorized } from "@/lib/adminAuth";
 
+// "pending" is included because stock is deducted at order creation (POST /api/orders)
 const DEDUCT_STATUSES = new Set([
+  "pending",
   "confirmed",
   "preparing",
   "out_for_delivery",
@@ -116,25 +118,16 @@ export async function PATCH(request, context) {
     const applyDeduction = !wasDeducted && shouldDeduct;
     const applyRestore = wasDeducted && nextStatus === "cancelled";
 
-    const stockMoves = [];
+    const stockMoves = [];   // { stockId, grams } — single products
+    const bundleMoves = [];  // { productId, quantity } — bundles
 
     if (applyDeduction || applyRestore) {
       for (const item of existingOrder.items) {
         const qty = Number(item.quantity) || 1;
 
         if (item.type === "bundle") {
-          const bundleItems = Array.isArray(item.product?.bundleItems)
-            ? item.product.bundleItems
-            : [];
-
-          for (const bi of bundleItems) {
-            const grams = (Number(bi.gramsPerUnit) || 0) * qty;
-            if (grams > 0 && bi.stockId) {
-              stockMoves.push({
-                stockId: bi.stockId,
-                grams,
-              });
-            }
+          if (item.productId) {
+            bundleMoves.push({ productId: item.productId, quantity: qty });
           }
         } else {
           const gramsPerUnit =
@@ -161,6 +154,14 @@ export async function PATCH(request, context) {
       }, {})
     );
 
+    const mergedBundleMoves = Object.values(
+      bundleMoves.reduce((acc, b) => {
+        if (!acc[b.productId]) acc[b.productId] = { productId: b.productId, quantity: 0 };
+        acc[b.productId].quantity += b.quantity;
+        return acc;
+      }, {})
+    );
+
     const order = await prisma.$transaction(async (tx) => {
       if (applyDeduction) {
         for (const m of mergedMoves) {
@@ -174,9 +175,13 @@ export async function PATCH(request, context) {
           }
           await tx.stock.update({
             where: { id: m.stockId },
-            data: {
-              currentStockGrams: { decrement: m.grams },
-            },
+            data: { currentStockGrams: { decrement: m.grams } },
+          });
+        }
+        for (const b of mergedBundleMoves) {
+          await tx.product.update({
+            where: { id: b.productId },
+            data: { bundleStock: { decrement: b.quantity } },
           });
         }
       }
@@ -185,9 +190,13 @@ export async function PATCH(request, context) {
         for (const m of mergedMoves) {
           await tx.stock.update({
             where: { id: m.stockId },
-            data: {
-              currentStockGrams: { increment: m.grams },
-            },
+            data: { currentStockGrams: { increment: m.grams } },
+          });
+        }
+        for (const b of mergedBundleMoves) {
+          await tx.product.update({
+            where: { id: b.productId },
+            data: { bundleStock: { increment: b.quantity } },
           });
         }
       }

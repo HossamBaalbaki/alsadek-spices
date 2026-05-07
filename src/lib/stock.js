@@ -65,21 +65,18 @@ export function parseWeightLabelToGrams(label) {
 
 // For a product with its linked Stock already included, return an array of
 // variants enriched with gram count, price, and availability.
-// `product` shape expected:
-//   - product.type === "single": needs product.stock (Stock row) and product.variants [{ weightLabel, grams }]
-//   - product.type === "bundle": needs product.bundleItems with each item.stock loaded
-// `applySale` (bool) — whether to include sale discount in computed price.
+// Variants now carry explicit prices: { weightLabel, grams, price }
+// Sale percent is applied on top of the stored price.
 export function enrichSingleVariants(product) {
   if (!product) return [];
   if (product.type !== "single") return [];
   const variants = Array.isArray(product.variants) ? product.variants : [];
   const stock = product.stock;
 
-  // If no variants stored, synthesize one default option so shop always has price/variant
   const normalizedVariants =
     variants.length > 0
       ? variants
-      : [{ weightLabel: "100g", grams: 100 }];
+      : [{ weightLabel: "100g", grams: 100, price: 0 }];
 
   if (!stock) {
     return normalizedVariants.map((v) => ({
@@ -93,12 +90,11 @@ export function enrichSingleVariants(product) {
   const labels = product.labels || {};
   const salePct =
     labels.isSale && Number(labels.salePercent) > 0 ? Number(labels.salePercent) : 0;
-  const sellPerGram = Number(stock.sellPricePerGram) || 0;
   const currentGrams = Number(stock.currentStockGrams) || 0;
 
   return normalizedVariants.map((v) => {
     const grams = Number(v.grams || parseWeightLabelToGrams(v.weightLabel || v.weight)) || 0;
-    const basePrice = grams * sellPerGram;
+    const basePrice = Number(v.price) || 0;
     const finalPrice = salePct > 0 ? basePrice * (1 - salePct / 100) : basePrice;
     return {
       weightLabel: v.weightLabel || v.weight || `${grams}g`,
@@ -157,27 +153,43 @@ export function isProductSoldOut(product) {
   return smallestGrams === Infinity || smallestGrams > currentGrams;
 }
 
-// Validate that a sale percent does not drop the sell price below cost.
-// Returns { ok: boolean, message?: string }
-export function validateSaleAgainstCost({
-  sellPricePerGram,
-  costPerGram,
-  salePercent,
-}) {
-  const sell = Number(sellPricePerGram) || 0;
-  const cost = Number(costPerGram) || 0;
-  const pct = Number(salePercent) || 0;
-  if (pct <= 0) return { ok: true };
-  const discounted = sell * (1 - pct / 100);
-  if (discounted < cost) {
-    return {
-      ok: false,
-      message: `Sale price (${discounted.toFixed(3)} QAR/g) is below cost (${cost.toFixed(
-        3
-      )} QAR/g). Reduce the sale percentage.`,
-    };
+// Validate that each variant's price covers its cost and sale percent doesn't push below cost.
+// variants: [{ weightLabel, grams, price }], costPerGram: number, salePercent: number
+export function validateVariantPricesAgainstCost({ variants, costPerGram, salePercent = 0 }) {
+  const cpg = Number(costPerGram) || 0;
+  const salePct = Number(salePercent) || 0;
+  for (const v of variants) {
+    const grams = Number(v.grams) || 0;
+    const price = Number(v.price) || 0;
+    if (price <= 0) {
+      return { ok: false, message: `Variant "${v.weightLabel}" price must be > 0` };
+    }
+    const variantCost = cpg * grams;
+    const effectivePrice = salePct > 0 ? price * (1 - salePct / 100) : price;
+    if (effectivePrice < variantCost) {
+      return {
+        ok: false,
+        message: `Variant "${v.weightLabel}" effective price (${effectivePrice.toFixed(2)} QAR) is below cost (${variantCost.toFixed(2)} QAR). Reduce price or sale %.`,
+      };
+    }
   }
   return { ok: true };
+}
+
+// Compute average markup percent from saved variants relative to cost per gram.
+export function computeMarkupPercent(variants, costPerGram) {
+  const cpg = Number(costPerGram) || 0;
+  if (!cpg || !variants.length) return 30;
+  const markups = variants
+    .map((v) => {
+      const cost = cpg * (Number(v.grams) || 0);
+      const price = Number(v.price) || 0;
+      if (!cost || !price) return null;
+      return ((price - cost) / cost) * 100;
+    })
+    .filter((m) => m !== null);
+  if (!markups.length) return 30;
+  return markups.reduce((a, b) => a + b, 0) / markups.length;
 }
 
 // Validate bundle sale against computed bundle cost.

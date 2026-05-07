@@ -17,20 +17,9 @@ import ProductGrid from "@/components/shop/ProductGrid";
 const getVariantLabel = (variant) =>
   variant?.weightLabel || variant?.weight || `${variant?.grams || 0}g`;
 
-const getVariantPriceNumber = (variant, product) => {
+const getVariantPriceNumber = (variant) => {
   const n = Number(variant?.price);
-  if (Number.isFinite(n) && n > 0) return n;
-
-  const grams =
-    Number(variant?.grams) ||
-    parseWeightLabelToGrams(variant?.weightLabel || variant?.weight);
-  const sellPerGram = Number(product?.stock?.sellPricePerGram);
-
-  if (Number.isFinite(grams) && grams > 0 && Number.isFinite(sellPerGram) && sellPerGram > 0) {
-    return grams * sellPerGram;
-  }
-
-  return 0;
+  return Number.isFinite(n) && n > 0 ? n : 0;
 };
 
 export default function ProductPage() {
@@ -147,21 +136,7 @@ export default function ProductPage() {
 
     const refVariant = selectedVariant || safeVariants[0] || null;
     if (refVariant) {
-      const grams =
-        Number(refVariant?.grams) ||
-        parseWeightLabelToGrams(refVariant?.weightLabel || refVariant?.weight);
-      const sellPerGram = Number(product?.stock?.sellPricePerGram);
-
-      if (
-        Number.isFinite(grams) &&
-        grams > 0 &&
-        Number.isFinite(sellPerGram) &&
-        sellPerGram > 0
-      ) {
-        return grams * sellPerGram;
-      }
-
-      return getVariantPriceNumber(refVariant, product);
+      return getVariantPriceNumber(refVariant);
     }
 
     return Number.isFinite(Number(product.price)) ? Number(product.price) : 0;
@@ -195,13 +170,13 @@ export default function ProductPage() {
           ? {
               ...selectedVariant,
               price:
-                getVariantPriceNumber(selectedVariant, product) *
+                getVariantPriceNumber(selectedVariant) *
                 (1 - Number(safeLabels.salePercent || 0) / 100),
             }
           : selectedVariant
           ? {
               ...selectedVariant,
-              price: getVariantPriceNumber(selectedVariant, product),
+              price: getVariantPriceNumber(selectedVariant),
             }
           : selectedVariant;
 
@@ -355,7 +330,7 @@ export default function ProductPage() {
                       const vLabel = getVariantLabel(variant);
                       const isSelected =
                         getVariantLabel(selectedVariant) === vLabel;
-                      const vPrice = getVariantPriceNumber(variant, product);
+                      const vPrice = getVariantPriceNumber(variant);
                       return (
                         <button
                           key={`${vLabel}-${index}`}

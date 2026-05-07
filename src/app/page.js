@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { usePolling } from "@/hooks/usePolling";
 import Link from "next/link";
 import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
@@ -200,30 +201,31 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [siteSettings, setSiteSettings] = useState(null);
 
-  useEffect(() => {
-    const fetchHomeData = async () => {
-      try {
-        const [fRes, bRes, cRes, sRes] = await Promise.all([
-          fetch("/api/products?featured=true&limit=4"),
-          fetch("/api/products?bestSeller=true&limit=4"),
-          fetch("/api/categories?active=true"),
-          fetch("/api/site-settings", { cache: "no-store" }),
-        ]);
-        const [fData, bData, cData, sData] = await Promise.all([
-          fRes.json(), bRes.json(), cRes.json(), sRes.json(),
-        ]);
-        if (fData.success) setFeaturedProducts(fData.data);
-        if (bData.success) setBestSellers(bData.data);
-        if (cData.success) setCategories(cData.data);
-        if (sData.success) setSiteSettings(sData.data);
-      } catch (e) {
-        console.error("Home data error:", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchHomeData();
+  const fetchHomeData = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const [fRes, bRes, cRes, sRes] = await Promise.all([
+        fetch("/api/products?featured=true&limit=4"),
+        fetch("/api/products?bestSeller=true&limit=4"),
+        fetch("/api/categories?active=true"),
+        fetch("/api/site-settings", { cache: "no-store" }),
+      ]);
+      const [fData, bData, cData, sData] = await Promise.all([
+        fRes.json(), bRes.json(), cRes.json(), sRes.json(),
+      ]);
+      if (fData.success) setFeaturedProducts(fData.data);
+      if (bData.success) setBestSellers(bData.data);
+      if (cData.success) setCategories(cData.data);
+      if (sData.success) setSiteSettings(sData.data);
+    } catch (e) {
+      console.error("Home data error:", e);
+    } finally {
+      if (!silent) setLoading(false);
+    }
   }, []);
+
+  useEffect(() => { fetchHomeData(); }, [fetchHomeData]);
+  usePolling(() => fetchHomeData(true), 30000);
 
   const handleAddToCart = (product) => {
     addToCart(product, product.variants?.[0] || null, 1);

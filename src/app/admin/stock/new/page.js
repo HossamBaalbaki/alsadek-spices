@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 const UNITS = [
   { value: "gram", label: "Gram (g)" },
@@ -28,12 +29,11 @@ export default function NewStockPage() {
     nameAr: "",
     descriptionEn: "",
     descriptionAr: "",
-    images: [""],
+    images: [],
     categoryId: "",
     purchaseUnit: "kilogram",
     purchaseQuantity: "",
     purchasePrice: "",
-    sellPricePerGram: "",
     lowStockThresholdGrams: "500",
     active: true,
   });
@@ -52,29 +52,9 @@ export default function NewStockPage() {
 
   const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
-  const setImage = (i, val) => {
-    setForm((f) => {
-      const next = [...f.images];
-      next[i] = val;
-      return { ...f, images: next };
-    });
-  };
-  const addImage = () =>
-    setForm((f) => ({ ...f, images: [...f.images, ""] }));
-  const removeImage = (i) =>
-    setForm((f) => ({
-      ...f,
-      images: f.images.filter((_, idx) => idx !== i),
-    }));
-
   const totalGrams = unitToGrams(form.purchaseQuantity, form.purchaseUnit);
   const costPerGram =
     totalGrams > 0 ? Number(form.purchasePrice) / totalGrams : 0;
-  const sellPerGram = Number(form.sellPricePerGram) || 0;
-  const marginPct =
-    sellPerGram > 0 && costPerGram > 0
-      ? ((sellPerGram - costPerGram) / sellPerGram) * 100
-      : 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -92,18 +72,6 @@ export default function NewStockPage() {
       setError("Purchase price must be > 0.");
       return;
     }
-    if (!Number(form.sellPricePerGram) || Number(form.sellPricePerGram) <= 0) {
-      setError("Sell price per gram must be > 0.");
-      return;
-    }
-    if (sellPerGram < costPerGram) {
-      setError(
-        `Sell price per gram cannot be below cost per gram (${costPerGram.toFixed(
-          4
-        )}).`
-      );
-      return;
-    }
 
     setSaving(true);
     try {
@@ -113,12 +81,11 @@ export default function NewStockPage() {
         nameAr: form.nameAr,
         descriptionEn: form.descriptionEn,
         descriptionAr: form.descriptionAr,
-        images: form.images.filter((u) => u && u.trim()),
+        images: form.images,
         categoryId: form.categoryId || null,
         purchaseUnit: form.purchaseUnit,
         purchaseQuantity: Number(form.purchaseQuantity),
         purchasePrice: Number(form.purchasePrice),
-        sellPricePerGram: Number(form.sellPricePerGram),
         lowStockThresholdGrams: Number(form.lowStockThresholdGrams) || 500,
         active: form.active,
       };
@@ -241,37 +208,13 @@ export default function NewStockPage() {
 
         {/* IMAGES */}
         <div>
-          <label className="text-xs font-bold text-stone-600 uppercase">
-            Image URLs
+          <label className="text-xs font-bold text-stone-600 uppercase mb-2 block">
+            Images
           </label>
-          <div className="flex flex-col gap-2 mt-2">
-            {form.images.map((url, i) => (
-              <div key={i} className="flex gap-2">
-                <input
-                  className="input flex-1"
-                  placeholder="https://…"
-                  value={url}
-                  onChange={(e) => setImage(i, e.target.value)}
-                />
-                {form.images.length > 1 && (
-                  <button
-                    type="button"
-                    className="px-3 rounded-xl bg-red-50 text-red-600 text-sm font-bold"
-                    onClick={() => removeImage(i)}
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={addImage}
-              className="self-start text-sm font-bold text-amber-700 hover:text-amber-900"
-            >
-              + Add image
-            </button>
-          </div>
+          <ImageUpload
+            images={form.images}
+            onChange={(urls) => set("images", urls)}
+          />
         </div>
 
         {/* PURCHASE */}
@@ -346,57 +289,23 @@ export default function NewStockPage() {
           )}
         </div>
 
-        {/* PRICING */}
+        {/* THRESHOLD */}
         <div className="border-t border-stone-200 pt-6">
-          <h3 className="text-sm font-black text-stone-800 mb-3">Pricing</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-bold text-stone-600 uppercase">
-                Sell Price / gram (QAR) *
-              </label>
-              <input
-                type="number"
-                step="0.001"
-                min="0"
-                className="input w-full mt-1"
-                value={form.sellPricePerGram}
-                onChange={(e) => set("sellPricePerGram", e.target.value)}
-                placeholder="e.g. 0.05"
-              />
-              {sellPerGram > 0 && costPerGram > 0 && (
-                <p
-                  className={`text-xs mt-1 font-semibold ${
-                    sellPerGram < costPerGram
-                      ? "text-red-600"
-                      : marginPct < 10
-                      ? "text-orange-600"
-                      : "text-green-600"
-                  }`}
-                >
-                  {sellPerGram < costPerGram
-                    ? `⚠ Below cost (${costPerGram.toFixed(4)})`
-                    : `Margin: ${marginPct.toFixed(1)}%`}
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="text-xs font-bold text-stone-600 uppercase">
-                Low-stock Threshold (grams)
-              </label>
-              <input
-                type="number"
-                step="1"
-                min="0"
-                className="input w-full mt-1"
-                value={form.lowStockThresholdGrams}
-                onChange={(e) =>
-                  set("lowStockThresholdGrams", e.target.value)
-                }
-              />
-              <p className="text-xs text-stone-400 mt-1">
-                Row turns orange when current stock ≤ this value.
-              </p>
-            </div>
+          <div>
+            <label className="text-xs font-bold text-stone-600 uppercase">
+              Low-stock Threshold (grams)
+            </label>
+            <input
+              type="number"
+              step="1"
+              min="0"
+              className="input w-full mt-1"
+              value={form.lowStockThresholdGrams}
+              onChange={(e) => set("lowStockThresholdGrams", e.target.value)}
+            />
+            <p className="text-xs text-stone-400 mt-1">
+              Row turns orange when current stock ≤ this value.
+            </p>
           </div>
         </div>
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePolling } from "@/hooks/usePolling";
 
 const formatGrams = (g) => {
   const n = Number(g) || 0;
@@ -16,8 +17,8 @@ export default function AdminStockPage() {
   const [search, setSearch] = useState("");
   const [lowOnly, setLowOnly] = useState(false);
 
-  const fetchStocks = async (lowFilter) => {
-    setLoading(true);
+  const fetchStocks = async (lowFilter, silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const token = localStorage.getItem("adminToken");
       const params = new URLSearchParams();
@@ -30,13 +31,15 @@ export default function AdminStockPage() {
     } catch (e) {
       console.error("Fetch stock error:", e);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchStocks(lowOnly);
-  }, [lowOnly]);
+  }, [lowOnly]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  usePolling(() => fetchStocks(lowOnly, true), 15000);
 
   const toggleActive = async (id, current) => {
     try {
@@ -155,7 +158,7 @@ export default function AdminStockPage() {
                     Cost / g
                   </th>
                   <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase">
-                    Sell / g
+                    Markup
                   </th>
                   <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase">
                     Used in
@@ -243,7 +246,7 @@ export default function AdminStockPage() {
                       {Number(s.costPerGram).toFixed(4)}
                     </td>
                     <td className="py-4 px-4 text-sm font-bold text-stone-800">
-                      {Number(s.sellPricePerGram).toFixed(2)}
+                      {s.pricingRule ? `${Number(s.pricingRule.markupPercent).toFixed(0)}%` : "—"}
                     </td>
                     <td className="py-4 px-4 text-xs text-stone-500">
                       {s._count?.products || 0} product

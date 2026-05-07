@@ -46,7 +46,6 @@ model Stock {
 
   // Aggregates (grams + cost per gram weighted average)
   costPerGram            Float          @default(0)
-  sellPricePerGram       Float          @default(0)
   currentStockGrams      Float          @default(0)
   totalStockGrams        Float          @default(0)
   lowStockThresholdGrams Float          @default(500)
@@ -58,8 +57,19 @@ model Stock {
   restocks               StockRestock[]
   products               Product[]
   bundleItems            BundleItem[]
+  pricingRule            PricingRule?
 
   @@map("stocks")
+}
+
+model PricingRule {
+  id            Int      @id @default(autoincrement())
+  stockId       Int      @unique
+  stock         Stock    @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  markupPercent Float    @default(30)
+  updatedAt     DateTime @updatedAt
+
+  @@map("pricing_rules")
 }
 
 model StockRestock {

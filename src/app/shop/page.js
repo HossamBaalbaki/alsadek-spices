@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { usePolling } from "@/hooks/usePolling";
 import { useLanguage } from "@/context/LanguageContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -34,9 +35,9 @@ export default function ShopPage() {
   }, []);
 
   // ─── FETCH PRODUCTS ───────────────────────────
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const fetchProducts = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    if (!silent) setError(null);
 
     try {
       const params = new URLSearchParams();
@@ -84,13 +85,13 @@ export default function ShopPage() {
         setProducts(filtered);
         setTotalProducts(data.pagination.total);
       } else {
-        setError("Failed to load products");
+        if (!silent) setError("Failed to load products");
       }
     } catch (err) {
       console.error("Fetch error:", err);
-      setError("Failed to load products");
+      if (!silent) setError("Failed to load products");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [selectedCategory, selectedType, searchQuery, sortBy, page, selectedLabels, priceRange]);
 
@@ -98,6 +99,8 @@ export default function ShopPage() {
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  usePolling(() => fetchProducts(true), 30000);
 
   // ─── RESET PAGE ON FILTER CHANGE ───────────────────────────
   useEffect(() => {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePolling } from "@/hooks/usePolling";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState([]);
@@ -18,8 +19,8 @@ export default function AdminProductsPage() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  const fetchProducts = async () => {
-    setLoading(true);
+  const fetchProducts = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const token = localStorage.getItem("adminToken");
       const res = await fetch("/api/admin/products", {
@@ -30,7 +31,7 @@ export default function AdminProductsPage() {
     } catch (error) {
       console.error("Fetch products error:", error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -47,7 +48,9 @@ export default function AdminProductsPage() {
   useEffect(() => {
     fetchProducts();
     fetchCategories();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  usePolling(() => fetchProducts(true), 20000);
 
   const toggleActive = async (productId, currentActive) => {
     try {
@@ -126,11 +129,6 @@ export default function AdminProductsPage() {
     const firstVariant = Array.isArray(product.variants) ? product.variants[0] : null;
     const variantPrice = Number(firstVariant?.price);
     if (Number.isFinite(variantPrice) && variantPrice > 0) return variantPrice;
-    const grams = Number(firstVariant?.grams);
-    const sellPerGram = Number(product?.stock?.sellPricePerGram);
-    if (Number.isFinite(grams) && grams > 0 && Number.isFinite(sellPerGram) && sellPerGram > 0) {
-      return grams * sellPerGram;
-    }
     const fallback = Number(product.price);
     return Number.isFinite(fallback) ? fallback : 0;
   };

@@ -8,25 +8,13 @@ import { useCart } from "@/context/CartContext";
 import { ProductBadges, SoldOutOverlay } from "@/components/ui/Badge";
 import { AddToCartButton, NotifyMeButton } from "@/components/ui/Button";
 import { isSoldOut } from "@/data/products";
-import { parseWeightLabelToGrams } from "@/lib/stock";
 
 const getVariantLabel = (variant) =>
   variant?.weightLabel || variant?.weight || `${variant?.grams || 0}g`;
 
-const getVariantPrice = (variant, product) => {
+const getVariantPrice = (variant) => {
   const n = Number(variant?.price);
-  if (Number.isFinite(n) && n > 0) return n;
-
-  // Fallback: compute from grams and linked stock sell price
-  const grams =
-    Number(variant?.grams) ||
-    parseWeightLabelToGrams(variant?.weightLabel || variant?.weight);
-  const sellPerGram = Number(product?.stock?.sellPricePerGram);
-  if (Number.isFinite(grams) && grams > 0 && Number.isFinite(sellPerGram) && sellPerGram > 0) {
-    return grams * sellPerGram;
-  }
-
-  return 0;
+  return Number.isFinite(n) && n > 0 ? n : 0;
 };
 
 const getBundleItemsText = (item, isArabic) => {
@@ -67,28 +55,8 @@ export default function ProductCard({ product }) {
       const p = Number(product?.price);
       return Number.isFinite(p) ? p : 0;
     }
-
-    // For single products, variant.price can already be discounted from API.
-    // Build base price from grams * sellPricePerGram when possible.
     const refVariant = selectedVariant || safeVariants[0] || null;
-    if (refVariant) {
-      const grams =
-        Number(refVariant?.grams) ||
-        parseWeightLabelToGrams(refVariant?.weightLabel || refVariant?.weight);
-      const sellPerGram = Number(product?.stock?.sellPricePerGram);
-
-      if (
-        Number.isFinite(grams) &&
-        grams > 0 &&
-        Number.isFinite(sellPerGram) &&
-        sellPerGram > 0
-      ) {
-        return grams * sellPerGram;
-      }
-
-      return getVariantPrice(refVariant, product);
-    }
-
+    if (refVariant) return getVariantPrice(refVariant);
     const p = Number(product?.price);
     return Number.isFinite(p) ? p : 0;
   };
@@ -130,7 +98,7 @@ export default function ProductCard({ product }) {
             ...selectedVariant,
             // API already provides final variant.price for sale items.
             // Keep it as-is to avoid double discount in cart.
-            price: Number(selectedVariant?.price ?? getVariantPrice(selectedVariant, product) ?? 0),
+            price: Number(selectedVariant?.price ?? getVariantPrice(selectedVariant) ?? 0),
           }
         : selectedVariant;
 

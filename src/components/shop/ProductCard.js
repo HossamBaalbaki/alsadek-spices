@@ -69,19 +69,19 @@ export default function ProductCard({ product }) {
       if (Number.isFinite(explicitOriginal) && explicitOriginal > 0) {
         return explicitOriginal;
       }
-
-      // If API already sends discounted price in product.price, reverse it once
+      // Reverse-calculate original from discounted bundle price
       const current = Number(product?.price);
       const pct = Number(safeLabels.salePercent) / 100;
       if (Number.isFinite(current) && current > 0 && pct > 0 && pct < 1) {
         return current / (1 - pct);
       }
-
       return null;
     }
 
-    // Single products: selected variant price is already base price
-    return getPrice();
+    // Single: API already discounts variant.price and puts the base in originalPrice
+    const refVariant = selectedVariant || safeVariants[0] || null;
+    const orig = Number(refVariant?.originalPrice);
+    return Number.isFinite(orig) && orig > 0 ? orig : null;
   };
 
   const handleAddToCart = (e) => {
@@ -124,11 +124,11 @@ export default function ProductCard({ product }) {
 
   const price = getPrice();
   const originalPrice = getOriginalPrice();
+  // For single products, variant.price is already the sale-discounted price (set by enrichSingleVariants).
+  // For bundles, product.price is the base price and the discount needs applying here.
   const displayPrice =
-    safeLabels.isSale && safeLabels.salePercent
-      ? (product?.type === "bundle"
-          ? Number(product?.price || 0)
-          : price * (1 - Number(safeLabels.salePercent) / 100))
+    safeLabels.isSale && safeLabels.salePercent && product?.type === "bundle"
+      ? Number(product?.price || 0) * (1 - Number(safeLabels.salePercent) / 100)
       : price;
   const productName = getName(product);
   const imageSrc = product?.images?.[0]?.trim();

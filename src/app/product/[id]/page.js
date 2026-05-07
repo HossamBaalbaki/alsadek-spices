@@ -143,19 +143,25 @@ export default function ProductPage() {
   };
 
   const price = getPrice();
-  const finalPrice = safeLabels.isSale
-    ? (product.type === "bundle"
-        ? Number(product.price || 0)
-        : price * (1 - Number(safeLabels.salePercent || 0) / 100))
+  // Single: variant.price is already discounted by the API (enrichSingleVariants).
+  // Bundle: product.price is the base price, discount applied here.
+  const finalPrice = safeLabels.isSale && product.type === "bundle"
+    ? Number(product.price || 0) * (1 - Number(safeLabels.salePercent || 0) / 100)
     : price;
 
   const originalPrice =
     product.type === "bundle"
       ? Number.isFinite(Number(product.originalPrice))
         ? Number(product.originalPrice)
-        : null
+        : safeLabels.isSale && safeLabels.salePercent
+          ? Number(product.price || 0)
+          : null
       : safeLabels.isSale
-      ? price
+      ? (() => {
+          const refVariant = selectedVariant || safeVariants[0] || null;
+          const orig = Number(refVariant?.originalPrice);
+          return Number.isFinite(orig) && orig > 0 ? orig : null;
+        })()
       : null;
 
   const currentImage = safeImages[activeImage]?.trim();
@@ -165,20 +171,10 @@ export default function ProductPage() {
     if (soldOut) return;
     setLoading(true);
     setTimeout(() => {
-      const effectiveVariant =
-        selectedVariant && safeLabels.isSale && safeLabels.salePercent
-          ? {
-              ...selectedVariant,
-              price:
-                getVariantPriceNumber(selectedVariant) *
-                (1 - Number(safeLabels.salePercent || 0) / 100),
-            }
-          : selectedVariant
-          ? {
-              ...selectedVariant,
-              price: getVariantPriceNumber(selectedVariant),
-            }
-          : selectedVariant;
+      // variant.price is already the sale-discounted price — use it directly
+      const effectiveVariant = selectedVariant
+        ? { ...selectedVariant, price: getVariantPriceNumber(selectedVariant) }
+        : selectedVariant;
 
       const effectiveProduct =
         product.type === "bundle"

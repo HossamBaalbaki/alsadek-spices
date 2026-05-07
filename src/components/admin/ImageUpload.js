@@ -3,8 +3,8 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 
-const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dltz3gpiy";
+const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "AlSadeq";
 
 export default function ImageUpload({ images = [], onChange, max = 5 }) {
   const [uploading, setUploading] = useState(false);

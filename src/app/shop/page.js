@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { usePolling } from "@/hooks/usePolling";
 import { useLanguage } from "@/context/LanguageContext";
 import Navbar from "@/components/layout/Navbar";
@@ -8,8 +9,9 @@ import Footer from "@/components/layout/Footer";
 import ProductCard from "@/components/shop/ProductCard";
 import FilterSidebar from "@/components/shop/FilterSidebar";
 
-export default function ShopPage() {
+function ShopPage() {
   const { t, isArabic } = useLanguage();
+  const searchParams = useSearchParams();
 
   // ─── STATE ───────────────────────────
   const [products, setProducts] = useState([]);
@@ -20,13 +22,9 @@ export default function ShopPage() {
   const [totalProducts, setTotalProducts] = useState(0);
 
   // ─── FILTERS ───────────────────────────
-  const [selectedCategory, setSelectedCategory] = useState(() => {
-    if (typeof window !== "undefined") {
-      const cat = new URLSearchParams(window.location.search).get("category");
-      if (cat) return cat;
-    }
-    return "all";
-  });
+  const [selectedCategory, setSelectedCategory] = useState(
+    searchParams.get("category") || "all"
+  );
   const [selectedType, setSelectedType] = useState("all");
   const [selectedLabels, setSelectedLabels] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 500]);
@@ -185,27 +183,25 @@ export default function ShopPage() {
               {/* ─── MOBILE FILTER BUTTON ─────────────────────────── */}
               <div className="flex items-center justify-between mb-6 lg:hidden">
                 <p className="text-sm text-stone-500">
-                  {products.length} {isArabic ? "منتج" : "products"}
+                  {totalProducts} {isArabic ? "منتج" : "products"}
                 </p>
                 <button
                   onClick={() => setShowMobileFilter(true)}
-                  className="btn btn-outline btn-sm flex items-center gap-2"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-colors ${
+                    selectedCategory !== "all" || selectedLabels.length > 0 || priceRange[1] < 500 || selectedType !== "all"
+                      ? "bg-amber-700 text-white border-amber-700"
+                      : "bg-white text-stone-700 border-stone-200"
+                  }`}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
                   </svg>
                   {isArabic ? "الفلاتر" : "Filters"}
+                  {(selectedCategory !== "all" || selectedLabels.length > 0 || priceRange[1] < 500 || selectedType !== "all") && (
+                    <span className="bg-white/30 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                      {[selectedCategory !== "all", selectedType !== "all", ...selectedLabels.map(() => true), priceRange[1] < 500].filter(Boolean).length}
+                    </span>
+                  )}
                 </button>
               </div>
 
@@ -297,14 +293,21 @@ export default function ShopPage() {
           </div>
         </div>
 
-        {/* ─── MOBILE FILTER DRAWER ─────────────────────────── */}
+        {/* ─── MOBILE FILTER BOTTOM SHEET ─────────────────────────── */}
         {showMobileFilter && (
-          <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end">
+            {/* Backdrop */}
             <div
               className="absolute inset-0 bg-black/50"
               onClick={() => setShowMobileFilter(false)}
             />
-            <div className="absolute right-0 top-0 bottom-0 w-80 bg-white overflow-y-auto p-5">
+            {/* Sheet */}
+            <div className="relative bg-white rounded-t-3xl flex flex-col"
+              style={{ maxHeight: "90dvh" }}>
+              {/* Drag handle */}
+              <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+                <div className="w-10 h-1 rounded-full bg-stone-300" />
+              </div>
               <FilterSidebar
                 selectedCategory={selectedCategory}
                 setSelectedCategory={setSelectedCategory}
@@ -325,5 +328,13 @@ export default function ShopPage() {
       </main>
       <Footer />
     </>
+  );
+}
+
+export default function ShopPageWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <ShopPage />
+    </Suspense>
   );
 }

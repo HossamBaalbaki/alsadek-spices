@@ -93,11 +93,16 @@ export default function FilterSidebar({
     priceRange[1] < 500 ||
     sortBy !== "newest";
 
+  const wrapper = isMobile ? "flex flex-col h-full" : "bg-white rounded-2xl border border-stone-200 overflow-hidden";
+  const inner   = isMobile ? "flex-1 overflow-y-auto" : "";
+  const header  = isMobile ? "flex items-center justify-between px-5 py-4 border-b border-stone-100 flex-shrink-0" : "flex items-center justify-between p-4 border-b border-stone-100";
+  const body    = isMobile ? "px-5 py-4 flex flex-col gap-6" : "p-4 flex flex-col gap-6";
+
   return (
-    <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden">
+    <div className={wrapper}>
 
       {/* ─── HEADER ─────────────────────────── */}
-      <div className="flex items-center justify-between p-4 border-b border-stone-100">
+      <div className={header}>
         <div className="flex items-center gap-2">
           {/* Filter Icon */}
           <svg
@@ -168,7 +173,7 @@ export default function FilterSidebar({
         </div>
       </div>
 
-      <div className="p-4 flex flex-col gap-6">
+      <div className={`${inner} ${body}`}>
 
         {/* ─── SORT BY ─────────────────────────── */}
         <div>
@@ -401,16 +406,19 @@ export default function FilterSidebar({
           </div>
         </div>
 
-        {/* ─── APPLY BUTTON (Mobile Only) ─────────────────────────── */}
-        {isMobile && (
+      </div>
+
+      {/* ─── APPLY BUTTON sticky at bottom (Mobile Only) ─────────────────────────── */}
+      {isMobile && (
+        <div className="flex-shrink-0 px-5 py-4 border-t border-stone-100 bg-white">
           <button
             onClick={onClose}
-            className="btn btn-primary btn-full btn-lg mt-2"
+            className="btn btn-primary w-full py-3 text-base"
           >
             {isArabic ? "عرض النتائج" : "Show Results"}
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

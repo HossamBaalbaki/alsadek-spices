@@ -14,6 +14,8 @@ export default function ShopPage() {
   // ─── STATE ───────────────────────────
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState(null);
   const [totalProducts, setTotalProducts] = useState(0);
 
@@ -33,56 +35,46 @@ export default function ShopPage() {
   const [showMobileFilter, setShowMobileFilter] = useState(false);
   const [page, setPage] = useState(1);
 
-  // ─── FETCH PRODUCTS ───────────────────────────
+  const applyClientFilters = useCallback((items) => {
+    let filtered = items;
+    if (selectedType !== "all") {
+      filtered = filtered.filter((p) => p.type === selectedType);
+    }
+    if (selectedLabels.length > 0) {
+      filtered = filtered.filter((p) => {
+        const labels = p.labels || {};
+        return selectedLabels.some((l) => labels[l] === true);
+      });
+    }
+    filtered = filtered.filter((p) => {
+      const price = p.type === "bundle" ? p.price : p.variants?.[0]?.price || 0;
+      return price >= priceRange[0] && price <= priceRange[1];
+    });
+    return filtered;
+  }, [selectedType, selectedLabels, priceRange]);
+
+  const buildParams = useCallback((pg) => {
+    const params = new URLSearchParams();
+    if (selectedCategory !== "all") params.set("category", selectedCategory);
+    if (searchQuery) params.set("search", searchQuery);
+    if (sortBy) params.set("sort", sortBy);
+    params.set("page", String(pg));
+    params.set("limit", "12");
+    return params;
+  }, [selectedCategory, searchQuery, sortBy]);
+
+  // ─── FETCH PAGE 1 (replaces list) ───────────────────────────
   const fetchProducts = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
-    if (!silent) setError(null);
-
+    if (!silent) { setLoading(true); setError(null); }
     try {
-      const params = new URLSearchParams();
-
-      if (selectedCategory !== "all") {
-        params.set("category", selectedCategory);
-      }
-      if (searchQuery) {
-        params.set("search", searchQuery);
-      }
-      if (sortBy) {
-        params.set("sort", sortBy);
-      }
-
-      params.set("page", page.toString());
-      params.set("limit", "12");
-
-      const res = await fetch(`/api/products?${params.toString()}`);
+      const res = await fetch(`/api/products?${buildParams(1)}`);
       const data = await res.json();
-
       if (data.success) {
-        let filtered = data.data;
-
-        // ─── CLIENT SIDE TYPE FILTER ───────────────────────────
-        if (selectedType !== "all") {
-          filtered = filtered.filter((p) => p.type === selectedType);
-        }
-
-        // ─── CLIENT SIDE LABEL FILTER ───────────────────────────
-        if (selectedLabels.length > 0) {
-          filtered = filtered.filter((product) => {
-            const labels = product.labels || {};
-            return selectedLabels.some((label) => labels[label] === true);
-          });
-        }
-
-        // ─── CLIENT SIDE PRICE FILTER ───────────────────────────
-        filtered = filtered.filter((product) => {
-          const price = product.type === "bundle"
-            ? product.price
-            : product.variants?.[0]?.price || 0;
-          return price >= priceRange[0] && price <= priceRange[1];
-        });
-
+        const filtered = applyClientFilters(data.data);
         setProducts(filtered);
         setTotalProducts(data.pagination.total);
+        setHasMore(data.data.length === 12);
+        setPage(1);
       } else {
         if (!silent) setError("Failed to load products");
       }
@@ -92,7 +84,27 @@ export default function ShopPage() {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [selectedCategory, selectedType, searchQuery, sortBy, page, selectedLabels, priceRange]);
+  }, [buildParams, applyClientFilters]);
+
+  // ─── LOAD MORE (appends next page) ───────────────────────────
+  const loadMore = async () => {
+    const nextPage = page + 1;
+    setLoadingMore(true);
+    try {
+      const res = await fetch(`/api/products?${buildParams(nextPage)}`);
+      const data = await res.json();
+      if (data.success) {
+        const filtered = applyClientFilters(data.data);
+        setProducts((prev) => [...prev, ...filtered]);
+        setPage(nextPage);
+        setHasMore(data.data.length === 12);
+      }
+    } catch (err) {
+      console.error("Load more error:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   // ─── FETCH ON FILTER CHANGE ───────────────────────────
   useEffect(() => {
@@ -100,11 +112,6 @@ export default function ShopPage() {
   }, [fetchProducts]);
 
   usePolling(() => fetchProducts(true), 30000);
-
-  // ─── RESET PAGE ON FILTER CHANGE ───────────────────────────
-  useEffect(() => {
-    setPage(1);
-  }, [selectedCategory, selectedType, searchQuery, sortBy, selectedLabels, priceRange]);
 
   return (
     <>
@@ -240,6 +247,21 @@ export default function ShopPage() {
                   {products.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
+                </div>
+              )}
+
+              {/* ─── LOAD MORE ─────────────────────────── */}
+              {!loading && !error && hasMore && (
+                <div className="flex justify-center mt-8">
+                  <button
+                    onClick={loadMore}
+                    disabled={loadingMore}
+                    className="btn btn-outline px-8"
+                  >
+                    {loadingMore
+                      ? (isArabic ? "جارٍ التحميل…" : "Loading…")
+                      : (isArabic ? "تحميل المزيد" : "Load More")}
+                  </button>
                 </div>
               )}
 

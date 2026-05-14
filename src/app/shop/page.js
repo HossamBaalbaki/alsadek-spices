@@ -18,7 +18,13 @@ export default function ShopPage() {
   const [totalProducts, setTotalProducts] = useState(0);
 
   // ─── FILTERS ───────────────────────────
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    if (typeof window !== "undefined") {
+      const cat = new URLSearchParams(window.location.search).get("category");
+      if (cat) return cat;
+    }
+    return "all";
+  });
   const [selectedType, setSelectedType] = useState("all");
   const [selectedLabels, setSelectedLabels] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 500]);
@@ -26,13 +32,6 @@ export default function ShopPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileFilter, setShowMobileFilter] = useState(false);
   const [page, setPage] = useState(1);
-
-  // ─── READ INITIAL CATEGORY FROM URL ───────────────────────────
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const cat = params.get("category");
-    if (cat) setSelectedCategory(cat);
-  }, []);
 
   // ─── FETCH PRODUCTS ───────────────────────────
   const fetchProducts = useCallback(async (silent = false) => {

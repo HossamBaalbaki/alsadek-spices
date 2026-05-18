@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyAdmin, unauthorized } from "@/lib/adminAuth";
 
 // ─── GET ALL CATEGORIES (admin: includes inactive) ───────────────────────
-export async function GET() {
+export async function GET(request) {
+  if (!verifyAdmin(request)) return unauthorized();
   try {
     const categories = await prisma.category.findMany({
       orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
@@ -29,6 +31,7 @@ export async function GET() {
 
 // ─── CREATE NEW CATEGORY ───────────────────────────
 export async function POST(request) {
+  if (!verifyAdmin(request)) return unauthorized();
   try {
     const body = await request.json();
     const {

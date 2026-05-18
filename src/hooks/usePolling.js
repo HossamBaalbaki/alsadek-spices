@@ -5,7 +5,10 @@ export function usePolling(fn, intervalMs) {
   fnRef.current = fn;
 
   useEffect(() => {
-    const tick = () => fnRef.current();
+    const tick = () => {
+      if (document.visibilityState === "hidden") return;
+      fnRef.current();
+    };
     const onVisibility = () => {
       if (document.visibilityState === "visible") tick();
     };

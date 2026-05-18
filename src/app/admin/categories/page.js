@@ -25,11 +25,15 @@ export default function AdminCategoriesPage() {
   };
   const [form, setForm] = useState(emptyForm);
 
+  const getToken = () => localStorage.getItem("adminToken") || "";
+
   // ─── FETCH CATEGORIES ───────────────────────────
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/categories");
+      const res = await fetch("/api/admin/categories", {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
       const data = await res.json();
       if (data.success) setCategories(data.data);
       else setError(data.message || "Failed to load categories");
@@ -118,7 +122,7 @@ export default function AdminCategoriesPage() {
 
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
@@ -145,6 +149,7 @@ export default function AdminCategoriesPage() {
     try {
       const res = await fetch(`/api/admin/categories/${cat.id}`, {
         method: "DELETE",
+        headers: { Authorization: `Bearer ${getToken()}` },
       });
       const data = await res.json();
       if (data.success) {
@@ -163,7 +168,7 @@ export default function AdminCategoriesPage() {
     try {
       const res = await fetch(`/api/admin/categories/${cat.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ active: !cat.active }),
       });
       const data = await res.json();

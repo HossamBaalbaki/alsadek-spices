@@ -14,13 +14,14 @@ export default function FilterSidebar({
   setPriceRange,
   sortBy,
   setSortBy,
+  maxPrice = 500,
   onClose,
   isMobile = false,
 }) {
   const { t, isArabic, getCategoryName } = useLanguage();
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [localPrice, setLocalPrice] = useState(priceRange || [0, 500]);
+  const [localPrice, setLocalPrice] = useState(priceRange || [0, maxPrice]);
 
   // ─── FETCH CATEGORIES FROM DB ───────────────────────────
   useEffect(() => {
@@ -80,8 +81,8 @@ export default function FilterSidebar({
     setSelectedCategory("all");
     setSelectedType("all");
     setSelectedLabels([]);
-    setPriceRange([0, 500]);
-    setLocalPrice([0, 500]);
+    setPriceRange([0, maxPrice]);
+    setLocalPrice([0, maxPrice]);
     setSortBy("newest");
   };
 
@@ -90,7 +91,7 @@ export default function FilterSidebar({
     selectedCategory !== "all" ||
     (selectedType || "all") !== "all" ||
     selectedLabels.length > 0 ||
-    priceRange[1] < 500 ||
+    priceRange[1] < maxPrice ||
     sortBy !== "newest";
 
   const wrapper = isMobile ? "flex flex-col h-full" : "bg-white rounded-2xl border border-stone-200 overflow-hidden";
@@ -130,7 +131,7 @@ export default function FilterSidebar({
                 [
                   selectedCategory !== "all",
                   ...selectedLabels.map(() => true),
-                  priceRange[1] < 500,
+                  priceRange[1] < maxPrice,
                 ].filter(Boolean).length
               }
             </span>
@@ -330,7 +331,7 @@ export default function FilterSidebar({
           <input
             type="range"
             min="0"
-            max="500"
+            max={maxPrice}
             step="10"
             value={localPrice[1]}
             onChange={handlePriceChange}
@@ -340,7 +341,7 @@ export default function FilterSidebar({
           {/* Price Labels */}
           <div className="flex justify-between mt-1">
             <span className="text-xs text-stone-400">0</span>
-            <span className="text-xs text-stone-400">500 {t.general.qar}</span>
+            <span className="text-xs text-stone-400">{maxPrice} {t.general.qar}</span>
           </div>
         </div>
 

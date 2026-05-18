@@ -84,16 +84,14 @@ export async function GET(request) {
       products.sort((a, b) => firstPrice(b) - firstPrice(a));
     }
 
-    return NextResponse.json({
-      success: true,
-      data: products,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
+    return NextResponse.json(
+      {
+        success: true,
+        data: products,
+        pagination: { page, limit, total, pages: Math.ceil(total / limit) },
       },
-    });
+      { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" } }
+    );
   } catch (error) {
     console.error("GET /api/products error:", error);
     return NextResponse.json(

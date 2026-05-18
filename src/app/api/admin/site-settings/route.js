@@ -32,6 +32,12 @@ export async function PUT(request) {
 
     const body = await request.json();
 
+    const parseTickerItems = (value) => {
+      if (Array.isArray(value)) return value.map((s) => String(s).trim()).filter(Boolean);
+      if (typeof value === "string") return value.split("\n").map((s) => s.trim()).filter(Boolean);
+      return [];
+    };
+
     const data = {
       topBannerEn: (body.topBannerEn || "").trim(),
       topBannerAr: (body.topBannerAr || "").trim(),
@@ -40,6 +46,8 @@ export async function PUT(request) {
       promoSubtitleEn: (body.promoSubtitleEn || "").trim(),
       promoSubtitleAr: (body.promoSubtitleAr || "").trim(),
       freeDeliveryThreshold: Number(body.freeDeliveryThreshold ?? DEFAULT_SETTINGS.freeDeliveryThreshold),
+      tickerItemsEn: parseTickerItems(body.tickerItemsEn),
+      tickerItemsAr: parseTickerItems(body.tickerItemsAr),
     };
 
     if (!data.topBannerEn || !data.topBannerAr || !data.promoTitleEn || !data.promoTitleAr || !data.promoSubtitleEn || !data.promoSubtitleAr) {

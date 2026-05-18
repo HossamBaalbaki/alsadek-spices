@@ -180,8 +180,11 @@ export default function AdminLayout({ children }) {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link href="/" target="_blank" className="btn btn-outline btn-sm hidden sm:flex">
-              View Store →
+            <Link href="/" target="_blank" className="btn btn-outline btn-sm flex items-center gap-1">
+              <span className="hidden sm:inline">View Store →</span>
+              <svg className="sm:hidden h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
             </Link>
             <div className="w-8 h-8 rounded-full bg-amber-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
               {admin.name?.charAt(0) || "A"}

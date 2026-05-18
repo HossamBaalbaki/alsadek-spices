@@ -10,9 +10,11 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [categories, setCategories] = useState([]);
-  const [produceModal, setProduceModal] = useState(null); // null or PRODUCE_INIT
+  const [produceModal, setProduceModal] = useState(null);
   const [producing, setProducing] = useState(false);
   const [toast, setToast] = useState(null);
+  const [selected, setSelected] = useState(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   const showToast = (msg, ok = true) => {
     setToast({ msg, ok });
@@ -105,6 +107,37 @@ export default function AdminProductsPage() {
     }
   };
 
+  const bulkToggleActive = async (active) => {
+    if (selected.size === 0) return;
+    setBulkLoading(true);
+    const token = localStorage.getItem("adminToken");
+    try {
+      await Promise.all(
+        [...selected].map((id) =>
+          fetch(`/api/admin/products/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ active }),
+          })
+        )
+      );
+      setProducts((prev) => prev.map((p) => (selected.has(p.id) ? { ...p, active } : p)));
+      setSelected(new Set());
+    } catch (error) {
+      console.error("Bulk toggle error:", error);
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const toggleSelect = (id) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
   const filteredProducts = products.filter((product) => {
     const matchSearch =
       !search ||
@@ -183,6 +216,38 @@ export default function AdminProductsPage() {
         </Link>
       </div>
 
+      {/* ─── BULK ACTION TOOLBAR ─────────────────────────── */}
+      {selected.size > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex items-center gap-3 flex-wrap">
+          <span className="text-sm font-bold text-amber-800">
+            {selected.size} product{selected.size !== 1 ? "s" : ""} selected
+          </span>
+          <div className="flex items-center gap-2 ml-auto flex-wrap">
+            <button
+              onClick={() => bulkToggleActive(true)}
+              disabled={bulkLoading}
+              className="btn btn-sm bg-green-600 text-white hover:bg-green-700 border-0"
+            >
+              Activate
+            </button>
+            <button
+              onClick={() => bulkToggleActive(false)}
+              disabled={bulkLoading}
+              className="btn btn-sm bg-stone-600 text-white hover:bg-stone-700 border-0"
+            >
+              Deactivate
+            </button>
+            <button
+              onClick={() => setSelected(new Set())}
+              disabled={bulkLoading}
+              className="btn btn-sm btn-outline"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ─── FILTERS ─────────────────────────── */}
       <div className="bg-white rounded-2xl border border-stone-200 p-4">
         <div className="flex flex-col sm:flex-row gap-3">
@@ -227,12 +292,24 @@ export default function AdminProductsPage() {
             <table className="w-full">
               <thead className="bg-stone-50 border-b border-stone-200">
                 <tr>
+                  <th className="py-3 px-4 w-10">
+                    <input
+                      type="checkbox"
+                      checked={filteredProducts.length > 0 && selected.size === filteredProducts.length}
+                      onChange={() => setSelected(
+                        selected.size === filteredProducts.length
+                          ? new Set()
+                          : new Set(filteredProducts.map((p) => p.id))
+                      )}
+                      className="rounded"
+                    />
+                  </th>
                   <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase">Product</th>
-                  <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase">Category</th>
+                  <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase hidden sm:table-cell">Category</th>
                   <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase">Price</th>
                   <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase">Stock</th>
-                  <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase">Rating</th>
-                  <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase">Labels</th>
+                  <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase hidden lg:table-cell">Rating</th>
+                  <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase hidden md:table-cell">Labels</th>
                   <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase">Status</th>
                   <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase">Actions</th>
                 </tr>
@@ -241,7 +318,15 @@ export default function AdminProductsPage() {
                 {filteredProducts.map((product) => {
                   const badge = getStockBadge(product);
                   return (
-                    <tr key={product.id} className="hover:bg-stone-50 transition-colors">
+                    <tr key={product.id} className={`hover:bg-stone-50 transition-colors ${selected.has(product.id) ? "bg-amber-50" : ""}`}>
+                      <td className="py-4 px-4">
+                        <input
+                          type="checkbox"
+                          checked={selected.has(product.id)}
+                          onChange={() => toggleSelect(product.id)}
+                          className="rounded"
+                        />
+                      </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
@@ -259,7 +344,7 @@ export default function AdminProductsPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 hidden sm:table-cell">
                         <span className="text-xs font-semibold bg-stone-100 text-stone-600 px-2 py-1 rounded-full">
                           {product.category?.nameEn}
                         </span>
@@ -277,14 +362,14 @@ export default function AdminProductsPage() {
                           {badge.text}
                         </span>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 hidden lg:table-cell">
                         <div className="flex items-center gap-1">
                           <span className="text-yellow-400 text-sm">⭐</span>
                           <span className="text-sm font-semibold text-stone-700">{product.rating}</span>
                           <span className="text-xs text-stone-400">({product.reviewCount})</span>
                         </div>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 hidden md:table-cell">
                         <div className="flex flex-wrap gap-1">
                           {product.labels?.isNew && (
                             <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-semibold">New</span>

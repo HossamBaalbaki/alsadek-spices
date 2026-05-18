@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyAdmin, unauthorized } from "@/lib/adminAuth";
 
 // ─── UPDATE CATEGORY ───────────────────────────
 export async function PUT(request, { params }) {
+  if (!verifyAdmin(request)) return unauthorized();
   try {
     const { id } = await params;
     const categoryId = Number(id);
@@ -71,7 +73,8 @@ export async function PUT(request, { params }) {
 }
 
 // ─── DELETE CATEGORY ───────────────────────────
-export async function DELETE(_request, { params }) {
+export async function DELETE(request, { params }) {
+  if (!verifyAdmin(request)) return unauthorized();
   try {
     const { id } = await params;
     const categoryId = Number(id);
@@ -106,3 +109,4 @@ export async function DELETE(_request, { params }) {
     );
   }
 }
+

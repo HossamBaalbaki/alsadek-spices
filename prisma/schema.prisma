@@ -124,6 +124,10 @@ model Product {
   reviews       Review[]
   bundleItems   BundleItem[]
 
+  @@index([categoryId, active])
+  @@index([featured, active])
+  @@index([bestSeller, active])
+  @@index([active, createdAt])
   @@map("products")
 }
 
@@ -155,6 +159,7 @@ model Customer {
   updatedAt DateTime @updatedAt
   orders    Order[]
 
+  @@index([phone])
   @@map("customers")
 }
 
@@ -178,6 +183,9 @@ model Order {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
+  @@index([status])
+  @@index([createdAt])
+  @@index([customerId, status])
   @@map("orders")
 }
 
@@ -255,6 +263,8 @@ model SiteSetting {
   promoPercent           Float    @default(10)
   promoActive            Boolean  @default(true)
   freeDeliveryThreshold  Float    @default(200)
+  tickerItemsEn  String[]
+  tickerItemsAr  String[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

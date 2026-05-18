@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { rateLimit, getIP, tooManyRequests } from "@/lib/rateLimit";
 
 export async function POST(request) {
+  const ip = getIP(request);
+  const rl = rateLimit(`promo:${ip}`, { windowMs: 60_000, max: 20 });
+  if (!rl.allowed) return tooManyRequests(rl.resetAt);
+
   try {
     const body = await request.json();
     const { code, subtotal } = body;

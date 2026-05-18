@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
@@ -18,6 +18,9 @@ export default function CheckoutPage() {
     discountAmount,
     grandTotal,
     selectedZone,
+    setSelectedZone,
+    deliveryZones,
+    FREE_DELIVERY_THRESHOLD,
     promoCode: appliedPromo,
     clearCart,
   } = useCart();
@@ -39,6 +42,24 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [orderError, setOrderError] = useState("");
+  const [stockCheckLoading, setStockCheckLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <>
+        <Navbar />
+        <main className="page-content">
+          <div className="container py-20 flex justify-center">
+            <div className="w-10 h-10 rounded-full border-4 border-amber-100 border-t-amber-600 animate-spin" />
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   if (cartItems.length === 0) {
     return (
@@ -115,15 +136,48 @@ export default function CheckoutPage() {
           ? "يجب اختيار منطقة التوصيل أولاً"
           : "You must select a delivery zone first",
       }));
-      alert(
-        isArabic
-          ? "لا يمكن إتمام الطلب بدون اختيار منطقة التوصيل"
-          : "You cannot place order without selecting a delivery zone"
-      );
+      setCurrentStep(2);
+      window.scrollTo(0, 0);
       return;
     }
 
     setLoading(true);
+    setOrderError("");
+
+    // ── Stock re-validation before submit ──────────────────
+    try {
+      setStockCheckLoading(true);
+      const outOfStock = [];
+      for (const item of cartItems) {
+        const res = await fetch(`/api/products/id/${item.productId}`);
+        const data = await res.json();
+        if (!data.success || !data.data) continue;
+        const p = data.data;
+        if (p.type === "bundle") {
+          if ((Number(p.bundleStock) || 0) < item.quantity) outOfStock.push(isArabic ? item.nameAr : item.nameEn);
+        } else if (p.stock) {
+          const variant = Array.isArray(p.variants) ? p.variants.find((v) => v.weightLabel === item.weight) : null;
+          const grams = Number(item.grams) || Number(variant?.grams) || 0;
+          if (grams > 0 && Number(p.stock.currentStockGrams) < grams * item.quantity) {
+            outOfStock.push(isArabic ? item.nameAr : item.nameEn);
+          }
+        }
+      }
+      setStockCheckLoading(false);
+      if (outOfStock.length > 0) {
+        setOrderError(
+          isArabic
+            ? `المخزون غير كافٍ: ${outOfStock.join("، ")}`
+            : `Out of stock: ${outOfStock.join(", ")}`
+        );
+        setLoading(false);
+        return;
+      }
+    } catch {
+      setStockCheckLoading(false);
+      // Non-fatal — continue to submit; server will re-validate
+    }
+
     try {
       const orderData = {
         customer: {
@@ -139,13 +193,14 @@ export default function CheckoutPage() {
           notes: formData.notes || null,
         },
         items: cartItems.map((item) => ({
-  productId: item.id || item.productId,
+          productId: item.id || item.productId,
           nameEn: item.nameEn,
           nameAr: item.nameAr,
           price: item.price,
           quantity: item.quantity,
           weight: item.weight || null,
           type: item.type || "single",
+          grams: item.grams || undefined,
         })),
         subtotal,
         deliveryFee,
@@ -185,12 +240,12 @@ export default function CheckoutPage() {
         clearCart();
         router.push(`/order-confirmation?order=${data.data.orderNumber}`);
       } else {
-        alert(isArabic ? `فشل إنشاء الطلب: ${data.message}` : `Failed: ${data.message}`);
+        setOrderError(isArabic ? `فشل إنشاء الطلب: ${data.message}` : `Failed: ${data.message}`);
         setLoading(false);
       }
     } catch (error) {
       console.error("Place order error:", error);
-      alert(isArabic ? "حدث خطأ" : "An error occurred");
+      setOrderError(isArabic ? "حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى." : "A connection error occurred. Please try again.");
       setLoading(false);
     }
   };
@@ -216,8 +271,6 @@ export default function CheckoutPage() {
           <div className="container">
             <div className="breadcrumb mb-4">
               <Link href="/" className="text-stone-400 hover:text-amber-400">{t.nav.home}</Link>
-              <span className="breadcrumb-separator text-stone-600">›</span>
-              <Link href="/cart" className="text-stone-400 hover:text-amber-400">{isArabic ? "السلة" : "Cart"}</Link>
               <span className="breadcrumb-separator text-stone-600">›</span>
               <span className="text-stone-300">{isArabic ? "إتمام الطلب" : "Checkout"}</span>
             </div>
@@ -362,6 +415,43 @@ export default function CheckoutPage() {
                       <textarea name="notes" value={formData.notes} onChange={handleChange} className="input resize-none" rows={3} placeholder={isArabic ? "أي تعليمات خاصة..." : "Any special instructions..."} />
                     </div>
                   </div>
+                  {/* ── Delivery Zone ── */}
+                  <div>
+                    <label className="block text-sm font-semibold text-stone-700 mb-2">
+                      {isArabic ? "منطقة التوصيل" : "Delivery Zone"} <span className="text-red-500">*</span>
+                    </label>
+                    {deliveryZones.length === 0 ? (
+                      <p className="text-xs text-stone-400">{isArabic ? "جاري تحميل المناطق..." : "Loading zones..."}</p>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {deliveryZones.map((zone) => (
+                          <button
+                            key={zone.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedZone(zone);
+                              if (errors.deliveryZone) setErrors((prev) => ({ ...prev, deliveryZone: "" }));
+                            }}
+                            className={`p-3 rounded-xl border-2 text-left transition-all ${
+                              selectedZone?.id === zone.id
+                                ? "border-amber-700 bg-amber-50"
+                                : "border-stone-200 hover:border-amber-300"
+                            }`}
+                          >
+                            <p className="font-bold text-stone-800 text-sm">{isArabic ? zone.nameAr : zone.nameEn}</p>
+                            <p className="text-xs text-stone-400 mt-0.5">{isArabic ? zone.estimatedTimeAr : zone.estimatedTime}</p>
+                            <p className="text-sm font-black text-amber-700 mt-1">
+                              {subtotal >= FREE_DELIVERY_THRESHOLD
+                                ? isArabic ? "مجاني 🎉" : "Free 🎉"
+                                : `${zone.price} ${t.general.qar}`}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {errors.deliveryZone && <p className="text-xs text-red-500 mt-1">{errors.deliveryZone}</p>}
+                  </div>
+
                   <div className="mt-6 flex justify-between">
                     <button onClick={() => setCurrentStep(1)} className="btn btn-outline btn-lg">
                       {isArabic ? "السابق" : "Back"}
@@ -425,16 +515,22 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
+                  {orderError && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                      <p className="text-red-700 text-sm font-semibold">{orderError}</p>
+                    </div>
+                  )}
+
                   <div className="flex justify-between">
                     <button onClick={() => setCurrentStep(2)} className="btn btn-outline btn-lg">
                       {isArabic ? "السابق" : "Back"}
                     </button>
-                    <button onClick={handlePlaceOrder} disabled={loading} className="btn btn-primary btn-lg">
-                      {loading ? (
-                        <>{isArabic ? "جاري تأكيد الطلب..." : "Placing Order..."}</>
-                      ) : (
-                        <>{isArabic ? "تأكيد الطلب" : "Place Order"}</>
-                      )}
+                    <button onClick={handlePlaceOrder} disabled={loading || stockCheckLoading} className="btn btn-primary btn-lg">
+                      {stockCheckLoading
+                        ? (isArabic ? "جاري التحقق من المخزون..." : "Checking stock...")
+                        : loading
+                        ? (isArabic ? "جاري تأكيد الطلب..." : "Placing Order...")
+                        : (isArabic ? "تأكيد الطلب" : "Place Order")}
                     </button>
                   </div>
                 </div>

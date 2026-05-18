@@ -12,6 +12,8 @@ const DEFAULT_SETTINGS = {
   promoPercent: 10,
   promoActive: true,
   freeDeliveryThreshold: 200,
+  tickerItemsEn: ["🌶️ 100% Natural Spices", "🚚 Same-Day Delivery in Doha", "⭐ Premium Quality Guaranteed", "💰 Best Prices in Qatar", "🎁 Elegant Gift Bundles", "📦 Professional Packaging"],
+  tickerItemsAr: ["🌶️ بهارات طبيعية 100%", "🚚 توصيل في نفس اليوم بالدوحة", "⭐ جودة فاخرة مضمونة", "💰 أفضل الأسعار في قطر", "🎁 باقات هدايا راقية", "📦 تغليف احترافي"],
 };
 
 export async function GET() {
@@ -20,15 +22,12 @@ export async function GET() {
       where: { id: 1 },
     });
 
-    return NextResponse.json({
-      success: true,
-      data: settings || DEFAULT_SETTINGS,
-    });
+    return NextResponse.json(
+      { success: true, data: settings || DEFAULT_SETTINGS },
+      { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60" } }
+    );
   } catch (error) {
     console.error("GET /api/site-settings error:", error);
-    return NextResponse.json({
-      success: true,
-      data: DEFAULT_SETTINGS,
-    });
+    return NextResponse.json({ success: true, data: DEFAULT_SETTINGS });
   }
 }

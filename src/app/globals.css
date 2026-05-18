@@ -396,9 +396,15 @@ select {
   100% { background-position: -200% 0; }
 }
 
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .animate-fadeIn { animation: fadeIn 0.4s ease forwards; }
 .animate-slideInRight { animation: slideInRight 0.4s ease forwards; }
 .animate-slideInLeft { animation: slideInLeft 0.4s ease forwards; }
+.animate-slideUp { animation: slideUp 0.3s ease forwards; }
 
 /* ─── TOAST ─────────────────────────── */
 .toast {
@@ -491,8 +497,8 @@ select {
 }
 
 .quantity-btn {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -519,7 +525,7 @@ select {
   border-left: 1.5px solid var(--color-border);
   border-right: 1.5px solid var(--color-border);
   padding: 0 4px;
-  line-height: 36px;
+  line-height: 44px;
 }
 
 /* ─── WEIGHT SELECTOR ─────────────────────────── */
@@ -531,6 +537,7 @@ select {
 
 .weight-option {
   padding: 0.375rem 0.875rem;
+  min-height: 44px;
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-md);
   font-size: 0.8rem;
@@ -539,6 +546,9 @@ select {
   transition: all var(--transition-fast);
   background: white;
   color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .weight-option:hover {
@@ -816,7 +826,7 @@ select {
   gap: 2px;
   padding: 0.375rem 1rem;
   color: var(--color-text-light);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: color var(--transition-fast);
@@ -829,6 +839,10 @@ select {
 
 .mobile-nav-item:hover {
   color: var(--color-primary);
+}
+
+[dir="rtl"] .mobile-bottom-nav {
+  flex-direction: row-reverse;
 }
 
 /* ─── SEARCH BAR ─────────────────────────── */
@@ -1042,7 +1056,7 @@ select {
 /* ─── WHATSAPP FLOAT ─────────────────────────── */
 .whatsapp-float {
   position: fixed;
-  bottom: 5rem;
+  bottom: 5.5rem;
   right: 1.5rem;
   z-index: 89;
   width: 52px;
@@ -1165,6 +1179,12 @@ select {
 @keyframes toast-in {
   from { opacity: 0; transform: translateX(-50%) translateY(12px) scale(0.95); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+@media (max-width: 767px) {
+  .cart-toast {
+    bottom: 5.25rem;
+  }
 }
 
 /* ─── LANGUAGE TOGGLE ─────────────────────────── */

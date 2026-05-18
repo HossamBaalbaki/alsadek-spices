@@ -23,7 +23,7 @@ const getVariantPriceNumber = (variant) => {
 };
 
 export default function ProductPage() {
-  const { id } = useParams();
+  const { slug } = useParams();
   const { t, isArabic } = useLanguage();
   const { addToCart } = useCart();
 
@@ -38,16 +38,17 @@ export default function ProductPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [imageError, setImageError] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
-      if (!id) return;
+      if (!slug) return;
       setPageLoading(true);
       setNotFound(false);
       setImageError(false);
       setActiveImage(0);
       try {
-        const res = await fetch(`/api/products/id/${id}`);
+        const res = await fetch(`/api/products/${slug}`);
         const data = await res.json();
         if (!res.ok || !data.success || !data.data) {
           setNotFound(true);
@@ -71,18 +72,38 @@ export default function ProductPage() {
       }
     };
     fetchProduct();
-  }, [id]);
+  }, [slug]);
 
   if (pageLoading) {
     return (
       <>
         <Navbar />
-        <div className="container py-20 text-center">
-          <div className="text-4xl mb-4">⏳</div>
-          <h1 className="text-2xl font-bold text-stone-800 mb-2">
-            {isArabic ? "جاري تحميل المنتج..." : "Loading product..."}
-          </h1>
-        </div>
+        <main className="page-content">
+          <div className="container py-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              <div className="flex flex-col gap-4">
+                <div className="skeleton aspect-square rounded-2xl" />
+                <div className="flex gap-2">
+                  {[0,1,2].map(i => <div key={i} className="skeleton w-16 h-16 rounded-lg" />)}
+                </div>
+              </div>
+              <div className="flex flex-col gap-4 pt-2">
+                <div className="skeleton h-4 w-24 rounded" />
+                <div className="skeleton h-8 w-3/4 rounded" />
+                <div className="skeleton h-5 w-32 rounded" />
+                <div className="skeleton h-10 w-40 rounded" />
+                <div className="skeleton h-px w-full rounded" />
+                <div className="skeleton h-4 w-full rounded" />
+                <div className="skeleton h-4 w-5/6 rounded" />
+                <div className="skeleton h-4 w-4/6 rounded" />
+                <div className="flex gap-2 mt-2">
+                  {[0,1,2].map(i => <div key={i} className="skeleton h-11 w-20 rounded-lg" />)}
+                </div>
+                <div className="skeleton h-12 w-full rounded-xl mt-4" />
+              </div>
+            </div>
+          </div>
+        </main>
         <Footer />
       </>
     );
@@ -170,29 +191,30 @@ export default function ProductPage() {
   const handleAddToCart = () => {
     if (soldOut) return;
     setLoading(true);
-    setTimeout(() => {
-      // variant.price is already the sale-discounted price — use it directly
-      const effectiveVariant = selectedVariant
-        ? { ...selectedVariant, price: getVariantPriceNumber(selectedVariant) }
-        : selectedVariant;
 
-      const effectiveProduct =
-        product.type === "bundle"
-          ? {
-              ...product,
-              price: Number(finalPrice || product.price || 0),
-            }
-          : product;
+    const effectiveVariant = selectedVariant
+      ? { ...selectedVariant, price: getVariantPriceNumber(selectedVariant) }
+      : selectedVariant;
 
-      addToCart(effectiveProduct, effectiveVariant, quantity);
-      setLoading(false);
-      setAddedToCart(true);
-      setTimeout(() => setAddedToCart(false), 2000);
-    }, 500);
+    const effectiveProduct =
+      product.type === "bundle"
+        ? { ...product, price: Number(finalPrice || product.price || 0) }
+        : product;
+
+    addToCart(effectiveProduct, effectiveVariant, quantity);
+    setLoading(false);
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 2000);
   };
 
   const reviewCount = product.reviewCount || 0;
   const rating = product.rating || 0;
+
+  const stockUnits =
+    product.type === "single" && selectedVariant?.grams > 0
+      ? Math.floor(Number(product.stock?.currentStockGrams || 0) / selectedVariant.grams)
+      : null;
+  const isLowStock = stockUnits !== null && stockUnits > 0 && stockUnits < 10;
 
   return (
     <>
@@ -219,13 +241,17 @@ export default function ProductPage() {
         <div className="container py-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             <div className="flex flex-col gap-4">
-              <div className="relative aspect-square bg-stone-100 rounded-2xl overflow-hidden">
+              <div
+                className="relative aspect-square bg-stone-100 rounded-2xl overflow-hidden cursor-zoom-in"
+                onClick={() => showImage && setLightboxOpen(true)}
+              >
                 <ProductBadges labels={safeLabels} isSoldOut={soldOut} position="card" />
                 {showImage ? (
                   <Image
                     src={currentImage}
                     alt={productName}
                     fill
+                    priority
                     className="object-cover"
                     onError={() => setImageError(true)}
                     sizes="(max-width: 1024px) 100vw, 50vw"
@@ -366,6 +392,17 @@ export default function ProductPage() {
                 </div>
               )}
 
+              {isLowStock && (
+                <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-2.5">
+                  <span className="text-orange-500">🔥</span>
+                  <p className="text-sm font-bold text-orange-700">
+                    {isArabic
+                      ? `متبقي ${stockUnits} فقط في المخزون!`
+                      : `Only ${stockUnits} left in stock!`}
+                  </p>
+                </div>
+              )}
+
               {!soldOut && (
                 <div>
                   <p className="text-sm font-bold text-stone-700 mb-3">
@@ -381,16 +418,16 @@ export default function ProductPage() {
                 </div>
               )}
 
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col gap-3">
                 {soldOut ? (
-                  <button disabled className="btn btn-disabled btn-lg flex-1">
+                  <button disabled className="btn btn-disabled btn-lg">
                     {t.product.soldOut}
                   </button>
                 ) : (
                   <button
                     onClick={handleAddToCart}
                     disabled={loading}
-                    className={`btn btn-lg flex-1 ${
+                    className={`btn btn-lg btn-full ${
                       addedToCart ? "bg-green-600 border-green-600 text-white" : "btn-primary"
                     }`}
                   >
@@ -402,31 +439,57 @@ export default function ProductPage() {
                   </button>
                 )}
 
-                <a
-                  href={`https://wa.me/97400000000?text=${encodeURIComponent(
-                    isArabic ? `مرحباً، أريد طلب: ${productName}` : `Hello, I want to order: ${productName}`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-lg bg-[#25d366] border-[#25d366] text-white hover:bg-[#20b858]"
-                >
-                  WhatsApp
-                </a>
+                {process.env.NEXT_PUBLIC_WHATSAPP_NUMBER && (
+                  <a
+                    href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+                      isArabic ? `مرحباً، أريد طلب: ${productName}` : `Hello, I want to order: ${productName}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 text-sm font-semibold text-[#25d366] hover:text-[#20b858] transition-colors py-1"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                    </svg>
+                    {isArabic ? "أو اطلب عبر واتساب" : "Or order via WhatsApp"}
+                  </a>
+                )}
               </div>
 
               <div className="grid grid-cols-3 gap-3 pt-2">
                 {[
-                  { icon: "🌿", textEn: "100% Natural", textAr: "طبيعي 100%" },
-                  { icon: "🚚", textEn: "Fast Delivery", textAr: "توصيل سريع" },
-                  { icon: "💯", textEn: "Guaranteed", textAr: "مضمون" },
+                  {
+                    icon: "🌿",
+                    textEn: "100% Natural",
+                    textAr: "طبيعي 100%",
+                    subEn: "No additives",
+                    subAr: "بدون إضافات",
+                  },
+                  {
+                    icon: "🚚",
+                    textEn: "Fast Delivery",
+                    textAr: "توصيل سريع",
+                    subEn: "Same day in Doha",
+                    subAr: "نفس اليوم بالدوحة",
+                  },
+                  {
+                    icon: "💯",
+                    textEn: "Guaranteed",
+                    textAr: "مضمون",
+                    subEn: "Quality assured",
+                    subAr: "جودة مضمونة",
+                  },
                 ].map((badge, index) => (
                   <div
                     key={index}
                     className="flex flex-col items-center text-center p-3 bg-stone-50 rounded-xl border border-stone-100"
                   >
-                    <span className="text-xl mb-1">{badge.icon}</span>
-                    <span className="text-xs font-semibold text-stone-600">
+                    <span className="text-2xl mb-1">{badge.icon}</span>
+                    <span className="text-xs font-bold text-stone-800">
                       {isArabic ? badge.textAr : badge.textEn}
+                    </span>
+                    <span className="text-[10px] text-stone-400 mt-0.5">
+                      {isArabic ? badge.subAr : badge.subEn}
                     </span>
                   </div>
                 ))}
@@ -465,6 +528,47 @@ export default function ProductPage() {
         </div>
       </main>
       <Footer />
+
+      {/* ─── IMAGE LIGHTBOX ─────────────────────────── */}
+      {lightboxOpen && showImage && (
+        <div
+          className="fixed inset-0 bg-black/90 z-[300] flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors"
+            onClick={() => setLightboxOpen(false)}
+            aria-label="Close"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <div
+            className="relative w-full max-w-2xl aspect-square"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Image
+              src={currentImage}
+              alt={productName}
+              fill
+              className="object-contain"
+              sizes="100vw"
+            />
+          </div>
+          {safeImages.length > 1 && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+              {safeImages.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={(e) => { e.stopPropagation(); setActiveImage(idx); setImageError(false); }}
+                  className={`w-2.5 h-2.5 rounded-full transition-colors ${activeImage === idx ? "bg-white" : "bg-white/40"}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 }

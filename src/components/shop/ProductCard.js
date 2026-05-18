@@ -32,7 +32,7 @@ const getBundleItemsText = (item, isArabic) => {
   return "Item";
 };
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, rank, priority = false }) {
   const { t, getName, isArabic } = useLanguage();
   const { addToCart, triggerFly } = useCart();
 
@@ -92,28 +92,21 @@ export default function ProductCard({ product }) {
 
     triggerFly(e.currentTarget.getBoundingClientRect());
     setLoading(true);
-    setTimeout(() => {
-      const effectiveVariant = selectedVariant
-        ? {
-            ...selectedVariant,
-            // API already provides final variant.price for sale items.
-            // Keep it as-is to avoid double discount in cart.
-            price: Number(selectedVariant?.price ?? getVariantPrice(selectedVariant) ?? 0),
-          }
-        : selectedVariant;
 
-      const effectiveProduct =
-        product?.type === "bundle"
-          ? {
-              ...product,
-              // keep bundle price as displayed (already normalized by API/UI path)
-              price: Number(displayPrice || product?.price || 0),
-            }
-          : product;
+    const effectiveVariant = selectedVariant
+      ? {
+          ...selectedVariant,
+          price: Number(selectedVariant?.price ?? getVariantPrice(selectedVariant) ?? 0),
+        }
+      : selectedVariant;
 
-      addToCart(effectiveProduct, effectiveVariant, 1);
-      setLoading(false);
-    }, 500);
+    const effectiveProduct =
+      product?.type === "bundle"
+        ? { ...product, price: Number(displayPrice || product?.price || 0) }
+        : product;
+
+    addToCart(effectiveProduct, effectiveVariant, 1);
+    setLoading(false);
   };
 
   const handleVariantSelect = (e, variant) => {
@@ -134,9 +127,14 @@ export default function ProductCard({ product }) {
   const imageSrc = product?.images?.[0]?.trim();
 
   return (
-    <Link href={`/product/${product?.id}`}>
+    <Link href={`/product/${product?.slug}`}>
       <div className={`product-card h-full flex flex-col ${soldOut ? "sold-out" : ""}`}>
         <div className="relative aspect-square bg-stone-100 rounded-t-lg overflow-hidden">
+          {rank && (
+            <div className="absolute top-2 left-2 z-20 w-7 h-7 bg-amber-700 text-white rounded-full flex items-center justify-center text-xs font-black shadow-md">
+              #{rank}
+            </div>
+          )}
           <ProductBadges labels={safeLabels} isSoldOut={soldOut} position="card" />
           {soldOut && <SoldOutOverlay />}
 
@@ -145,6 +143,7 @@ export default function ProductCard({ product }) {
               src={imageSrc}
               alt={productName}
               fill
+              priority={priority}
               className="object-cover transition-transform duration-500 hover:scale-105"
               onError={() => setImageError(true)}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -234,9 +233,9 @@ export default function ProductCard({ product }) {
           )}
 
           <div className="flex items-center gap-2 mt-auto">
-            <span className="font-bold text-stone-800 text-base">
+            <span className={`font-bold text-base ${safeLabels.isSale ? "price-discounted" : "text-stone-800"}`}>
               {Number(displayPrice || 0).toFixed(2)}{" "}
-              <span className="text-xs font-semibold text-stone-500">
+              <span className="text-xs font-semibold opacity-70">
                 {t.general.qar}
               </span>
             </span>

@@ -73,7 +73,7 @@ function Reveal({ children, className = "", direction = "up", delay = 0 }) {
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function AboutPage() {
   const { isArabic } = useLanguage();
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "97400000000";
+  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "";
 
   const content = {
     en: {
@@ -618,6 +618,7 @@ export default function AboutPage() {
                   >
                     {c.ctaShop} {isArabic ? "←" : "→"}
                   </Link>
+                  {whatsapp && (
                   <a
                     href={`https://wa.me/${whatsapp}`}
                     target="_blank"
@@ -629,6 +630,7 @@ export default function AboutPage() {
                     </svg>
                     {c.ctaChat}
                   </a>
+                  )}
                 </div>
               </div>
             </Reveal>

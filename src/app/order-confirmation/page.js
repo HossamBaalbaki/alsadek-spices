@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import ProductGrid from "@/components/shop/ProductGrid";
 
 function OrderConfirmationContent() {
   const { t, isArabic } = useLanguage();
@@ -13,6 +14,7 @@ function OrderConfirmationContent() {
   const orderNumber = searchParams.get("order");
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [featured, setFeatured] = useState([]);
 
   useEffect(() => {
     if (orderNumber) {
@@ -23,6 +25,10 @@ function OrderConfirmationContent() {
       if (lastOrder) setOrder(JSON.parse(lastOrder));
     }
     setLoading(false);
+    fetch("/api/products?sort=bestSeller&limit=4")
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setFeatured(d.data); })
+      .catch(() => {});
   }, [orderNumber]);
 
   const getPaymentLabel = () => {
@@ -344,6 +350,7 @@ function OrderConfirmationContent() {
           <div className="flex flex-col gap-4">
 
             {/* WhatsApp */}
+            {process.env.NEXT_PUBLIC_WHATSAPP_NUMBER && (
             <div className="bg-[#25d366] rounded-2xl p-5 text-white">
               <div className="flex items-center gap-3 mb-3">
                 <svg
@@ -364,7 +371,7 @@ function OrderConfirmationContent() {
                 </div>
               </div>
               <a
-                href={`https://wa.me/97400000000?text=${encodeURIComponent(
+                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent(
                   isArabic
                     ? `مرحباً، لدي طلب جديد:\nرقم الطلب: ${order.orderNumber}\nالإجمالي: ${order.grandTotal.toFixed(2)} ر.ق`
                     : `Hello, I have a new order:\nOrder Number: ${order.orderNumber}\nTotal: ${order.grandTotal.toFixed(2)} QAR`
@@ -376,6 +383,7 @@ function OrderConfirmationContent() {
                 {isArabic ? "أرسل عبر واتساب" : "Send via WhatsApp"}
               </a>
             </div>
+            )}
 
             {/* Quick Actions */}
             <div className="bg-white rounded-2xl border border-stone-200 p-5">
@@ -427,20 +435,37 @@ function OrderConfirmationContent() {
             </div>
 
             {/* Need Help */}
+            {process.env.NEXT_PUBLIC_WHATSAPP_NUMBER && (
             <div className="bg-white rounded-2xl border border-stone-200 p-5 text-center">
               <p className="text-stone-600 text-sm mb-3">
                 {isArabic ? "هل تحتاج مساعدة؟" : "Need help with your order?"}
               </p>
               <a
-                href="tel:+97400000000"
+                href={`tel:+${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}`}
                 className="btn btn-outline btn-full justify-center"
               >
                 {isArabic ? "اتصل بنا" : "Call Us"}
               </a>
             </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* ─── YOU MIGHT ALSO LIKE ─────────────────────────── */}
+      {featured.length > 0 && (
+        <div className="container py-8">
+          <div className="section-header mb-4">
+            <h2 className="text-xl font-black text-stone-900">
+              {isArabic ? "قد يعجبك أيضاً" : "You Might Also Like"}
+            </h2>
+            <Link href="/shop" className="text-sm font-semibold text-amber-700 hover:text-amber-900">
+              {isArabic ? "عرض الكل" : "View all"}
+            </Link>
+          </div>
+          <ProductGrid products={featured} loading={false} columns="default" />
+        </div>
+      )}
     </>
   );
 }

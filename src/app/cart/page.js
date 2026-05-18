@@ -8,6 +8,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useCart } from "@/context/CartContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import ProductGrid from "@/components/shop/ProductGrid";
 
 export default function CartPage() {
   const { t, isArabic } = useLanguage();
@@ -35,10 +36,19 @@ export default function CartPage() {
 
   const router = useRouter();
   const [promoInput, setPromoInput] = useState("");
+  const [zoneError, setZoneError] = useState("");
   const [imageErrors, setImageErrors] = useState({});
   const [mounted, setMounted] = useState(false);
+  const [crossSell, setCrossSell] = useState([]);
 
   useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    fetch("/api/products?sort=bestSeller&limit=4")
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setCrossSell(d.data); })
+      .catch(() => {});
+  }, []);
 
   // ─── HANDLE PROMO CODE ───────────────────────────
   const handleApplyPromo = () => {
@@ -414,6 +424,26 @@ export default function CartPage() {
                   )}
                 </div>
 
+                {/* Free Delivery Progress */}
+                {amountToFreeDelivery > 0 && (
+                  <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                    <div className="flex justify-between text-xs font-semibold text-amber-800 mb-2">
+                      <span>{isArabic ? "التوصيل المجاني" : "Free Delivery"}</span>
+                      <span>
+                        {isArabic
+                          ? `${amountToFreeDelivery.toFixed(2)} ر.ق متبقي`
+                          : `${amountToFreeDelivery.toFixed(2)} QAR away`}
+                      </span>
+                    </div>
+                    <div className="w-full bg-amber-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-amber-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(freeDeliveryProgress, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div className="divider" />
 
                 {/* Price Breakdown */}
@@ -487,13 +517,10 @@ export default function CartPage() {
                 type="button"
                 onClick={() => {
                   if (!selectedZone) {
-                    alert(
-                      isArabic
-                        ? "يجب اختيار منطقة التوصيل قبل المتابعة"
-                        : "Please select a delivery zone before checkout"
-                    );
+                    setZoneError(isArabic ? "يجب اختيار منطقة التوصيل قبل المتابعة" : "Please select a delivery zone before checkout");
                     return;
                   }
+                  setZoneError("");
                   router.push("/checkout");
                 }}
                 className={`btn btn-lg btn-full justify-center ${
@@ -516,12 +543,8 @@ export default function CartPage() {
                   </svg>
                   {isArabic ? "إتمام الطلب" : "Proceed to Checkout"}
                 </button>
-                {!selectedZone && (
-                  <p className="text-xs text-red-500 mt-2 text-center">
-                    {isArabic
-                      ? "اختر منطقة التوصيل أولاً للمتابعة"
-                      : "Select a delivery zone first to continue"}
-                  </p>
+                {zoneError && (
+                  <p className="text-xs text-red-500 mt-2 text-center font-medium">{zoneError}</p>
                 )}
 
                 {/* Security Note */}
@@ -566,6 +589,20 @@ export default function CartPage() {
             </div>
           </div>
         </div>
+        {/* ─── CROSS-SELL ─────────────────────────── */}
+        {crossSell.length > 0 && (
+          <div className="container pb-8">
+            <div className="section-header mb-4">
+              <h2 className="text-xl font-black text-stone-900">
+                {isArabic ? "قد يعجبك أيضاً" : "You Might Also Like"}
+              </h2>
+              <Link href="/shop" className="text-sm font-semibold text-amber-700 hover:text-amber-900">
+                {isArabic ? "عرض الكل" : "View all"}
+              </Link>
+            </div>
+            <ProductGrid products={crossSell} loading={false} columns="default" />
+          </div>
+        )}
       </main>
       <Footer />
     </>

@@ -5,128 +5,10 @@ import { usePolling } from "@/hooks/usePolling";
 import Link from "next/link";
 import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
-import { useCart } from "@/context/CartContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-
-// ─── PRODUCT CARD ─────────────────────────────────────────────────────────────
-function ProductCard({ product, isArabic, t, onAddToCart, rank }) {
-  const name = isArabic ? product.nameAr : product.nameEn;
-  const price =
-    product.type === "bundle"
-      ? product.price
-      : product.variants?.[0]?.price || 0;
-  const image = product.images?.[0]?.trim() || null;
-
-  return (
-    <div className="group relative bg-white rounded-3xl overflow-hidden border border-stone-100 hover:border-amber-200 hover:shadow-2xl transition-all duration-300 flex flex-col">
-      {/* Rank badge */}
-      {rank && (
-        <div className="absolute top-3 left-3 z-10 w-8 h-8 bg-amber-700 text-white rounded-full flex items-center justify-center text-xs font-black shadow-lg">
-          #{rank}
-        </div>
-      )}
-
-      {/* Label badges */}
-      <div className="absolute top-3 right-3 z-10 flex flex-col gap-1 items-end">
-        {product.labels?.isNew && (
-          <span className="badge badge-new">{isArabic ? "جديد" : "New"}</span>
-        )}
-        {product.labels?.isHot && (
-          <span className="badge badge-hot">{isArabic ? "رائج" : "Hot"}</span>
-        )}
-        {product.bestSeller && (
-          <span className="badge badge-bestseller">
-            {isArabic ? "الأكثر مبيعاً" : "Best Seller"}
-          </span>
-        )}
-      </div>
-
-      {/* Image */}
-      <Link href={`/product/${product.id}`} className="block overflow-hidden">
-        <div className="relative aspect-square bg-gradient-to-br from-amber-50 to-stone-100">
-          {image ? (
-            <Image
-              src={image}
-              alt={name}
-              fill
-              className="object-cover group-hover:scale-110 transition-transform duration-500"
-              sizes="(max-width: 768px) 50vw, 25vw"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-7xl opacity-40 group-hover:scale-110 transition-transform duration-500">
-                🌶️
-              </span>
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent group-hover:from-black/10 transition-all duration-300" />
-        </div>
-      </Link>
-
-      {/* Info */}
-      <div className="p-4 flex flex-col flex-1">
-        <Link href={`/product/${product.id}`}>
-          <h3 className="font-bold text-stone-800 text-sm mb-2 hover:text-amber-700 transition-colors leading-snug line-clamp-2">
-            {name}
-          </h3>
-        </Link>
-
-        {product.rating > 0 && (
-          <div className="flex items-center gap-1.5 mb-3">
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <span
-                  key={i}
-                  className={`text-xs ${
-                    i < Math.round(product.rating)
-                      ? "text-amber-400"
-                      : "text-stone-200"
-                  }`}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
-            <span className="text-xs text-stone-400">({product.reviewCount})</span>
-          </div>
-        )}
-
-        <div className="flex items-center justify-between mt-auto pt-2">
-          <div>
-            <span className="font-black text-lg text-stone-900">{price}</span>
-            <span className="text-xs font-semibold text-stone-400 ml-1">
-              {t.general.qar}
-            </span>
-          </div>
-          <button
-            onClick={() => onAddToCart(product)}
-            className="btn btn-primary btn-sm"
-          >
-            {isArabic ? "أضف" : "Add"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── SKELETON CARD ────────────────────────────────────────────────────────────
-function SkeletonCard() {
-  return (
-    <div className="bg-white rounded-3xl overflow-hidden border border-stone-100 animate-pulse">
-      <div className="aspect-square bg-stone-100" />
-      <div className="p-4 space-y-3">
-        <div className="h-3 bg-stone-100 rounded-full w-4/5" />
-        <div className="h-3 bg-stone-100 rounded-full w-3/5" />
-        <div className="flex justify-between items-center pt-1">
-          <div className="h-5 bg-stone-100 rounded-full w-14" />
-          <div className="h-8 bg-stone-100 rounded-xl w-16" />
-        </div>
-      </div>
-    </div>
-  );
-}
+import ProductCard from "@/components/shop/ProductCard";
+import { SkeletonCard } from "@/components/ui/Skeleton";
 
 // ─── CATEGORY CONFIG ─────────────────────────────────────────────────────────
 const CAT_CONFIG = {
@@ -193,7 +75,6 @@ function CategoryCard({ cat, isArabic }) {
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const { t, isArabic } = useLanguage();
-  const { addToCart } = useCart();
 
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [bestSellers, setBestSellers] = useState([]);
@@ -227,30 +108,16 @@ export default function HomePage() {
   useEffect(() => { fetchHomeData(); }, [fetchHomeData]);
   usePolling(() => fetchHomeData(true), 30000);
 
-  const handleAddToCart = (product) => {
-    addToCart(product, product.variants?.[0] || null, 1);
-  };
+  const defaultTickerEn = ["🌶️ 100% Natural Spices", "🚚 Same-Day Delivery in Doha", "⭐ Premium Quality Guaranteed", "💰 Best Prices in Qatar", "🎁 Elegant Gift Bundles", "📦 Professional Packaging"];
+  const defaultTickerAr = ["🌶️ بهارات طبيعية 100%", "🚚 توصيل في نفس اليوم بالدوحة", "⭐ جودة فاخرة مضمونة", "💰 أفضل الأسعار في قطر", "🎁 باقات هدايا راقية", "📦 تغليف احترافي"];
 
-  const tickerItems = isArabic
-    ? [
-        "🌶️ بهارات طبيعية 100%",
-        "🚚 توصيل في نفس اليوم بالدوحة",
-        "⭐ جودة فاخرة مضمونة",
-        "💰 أفضل الأسعار في قطر",
-        "🎁 باقات هدايا راقية",
-        "📦 تغليف احترافي",
-      ]
-    : [
-        "🌶️ 100% Natural Spices",
-        "🚚 Same-Day Delivery in Doha",
-        "⭐ Premium Quality Guaranteed",
-        "💰 Best Prices in Qatar",
-        "🎁 Elegant Gift Bundles",
-        "📦 Professional Packaging",
-      ];
+  const tickerItems = (isArabic
+    ? siteSettings?.tickerItemsAr
+    : siteSettings?.tickerItemsEn
+  ) || (isArabic ? [...defaultTickerAr] : [...defaultTickerEn]);
 
   const whatsappNumber =
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "97400000000";
+    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "";
 
   return (
     <>
@@ -301,10 +168,10 @@ export default function HomePage() {
 
               {/* Main headline */}
               <h1
-                className={`font-black text-white leading-[1.04] mb-7 ${
+                className={`font-black text-white mb-7 ${
                   isArabic
-                    ? "text-[2.8rem] md:text-[5.5rem]"
-                    : "text-[3.5rem] md:text-[6rem]"
+                    ? "text-[2.8rem] md:text-[5.5rem] leading-[1.5]"
+                    : "text-[3.5rem] md:text-[6rem] leading-[1.04]"
                 }`}
               >
                 {isArabic ? (
@@ -351,31 +218,13 @@ export default function HomePage() {
                 </Link>
                 <Link
                   href="/shop?category=bundles"
-                  className="btn btn-lg border-2 border-white/15 text-white hover:bg-white/8 hover:border-white/30 backdrop-blur-sm"
+                  className="btn btn-lg border-2 border-white/15 text-white hover:bg-white/10 hover:border-white/30 backdrop-blur-sm"
                 >
                   🎁{" "}
                   {isArabic ? "باقات الهدايا" : "Gift Bundles"}
                 </Link>
               </div>
 
-              {/* Stats row */}
-              <div className="flex flex-wrap gap-10 pt-10 border-t border-white/10">
-                {[
-                  { value: "500+", en: "Products", ar: "منتج" },
-                  { value: "10K+", en: "Happy Customers", ar: "عميل سعيد" },
-                  { value: "50+", en: "Spice Varieties", ar: "نوع بهار" },
-                  { value: "1 Day", en: "Delivery", ar: "توصيل" },
-                ].map((s) => (
-                  <div key={s.value}>
-                    <p className="text-3xl md:text-4xl font-black text-amber-400 tracking-tight">
-                      {s.value}
-                    </p>
-                    <p className="text-stone-500 text-sm mt-1">
-                      {isArabic ? s.ar : s.en}
-                    </p>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </section>
@@ -456,14 +305,8 @@ export default function HomePage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
               {loading
                 ? [...Array(4)].map((_, i) => <SkeletonCard key={i} />)
-                : featuredProducts.map((p) => (
-                    <ProductCard
-                      key={p.id}
-                      product={p}
-                      isArabic={isArabic}
-                      t={t}
-                      onAddToCart={handleAddToCart}
-                    />
+                : featuredProducts.map((p, i) => (
+                    <ProductCard key={p.id} product={p} priority={i < 4} />
                   ))}
             </div>
           </div>
@@ -537,14 +380,7 @@ export default function HomePage() {
               {loading
                 ? [...Array(4)].map((_, i) => <SkeletonCard key={i} />)
                 : bestSellers.map((p, idx) => (
-                    <ProductCard
-                      key={p.id}
-                      product={p}
-                      isArabic={isArabic}
-                      t={t}
-                      onAddToCart={handleAddToCart}
-                      rank={idx + 1}
-                    />
+                    <ProductCard key={p.id} product={p} rank={idx + 1} />
                   ))}
             </div>
           </div>
@@ -607,94 +443,6 @@ export default function HomePage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════
-            TESTIMONIALS — simple 3 cards
-        ═══════════════════════════════════════════════════ */}
-        <section className="py-20 bg-amber-50">
-          <div className="container">
-            <div className="text-center mb-14">
-              <p className="text-amber-700 text-xs font-bold uppercase tracking-[0.2em] mb-3">
-                {isArabic ? "آراء عملائنا" : "Customer Reviews"}
-              </p>
-              <h2 className="text-4xl font-black text-stone-900">
-                {isArabic ? "ماذا يقول عملاؤنا؟" : "What Our Customers Say"}
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {(isArabic
-                ? [
-                    {
-                      name: "أحمد المنصوري",
-                      rating: 5,
-                      text: "بهارات ممتازة بجودة عالية جداً. الطعم أصيل والتوصيل كان سريعاً جداً. سأطلب مرة أخرى بالتأكيد!",
-                      location: "الدوحة",
-                    },
-                    {
-                      name: "فاطمة الكواري",
-                      rating: 5,
-                      text: "اشتريت باقة الهدايا لأختي وكانت مذهلة! التغليف رائع والبهارات ذات جودة لا تُضاهى.",
-                      location: "الريان",
-                    },
-                    {
-                      name: "محمد العتيق",
-                      rating: 5,
-                      text: "أفضل متجر بهارات في قطر. الأسعار معقولة جداً مقارنة بالجودة الممتازة. شكراً للصادق!",
-                      location: "الوكرة",
-                    },
-                  ]
-                : [
-                    {
-                      name: "Ahmed Al Mansouri",
-                      rating: 5,
-                      text: "Excellent quality spices with authentic flavor. Delivery was super fast. Will definitely order again!",
-                      location: "Doha",
-                    },
-                    {
-                      name: "Fatima Al Kawari",
-                      rating: 5,
-                      text: "Bought the gift bundle for my sister and it was amazing! Beautiful packaging and unmatched quality.",
-                      location: "Al Rayyan",
-                    },
-                    {
-                      name: "Mohammed Al Atiq",
-                      rating: 5,
-                      text: "Best spice store in Qatar. Very reasonable prices for the premium quality. Thank you Al Sadek!",
-                      location: "Al Wakra",
-                    },
-                  ]
-              ).map((review) => (
-                <div
-                  key={review.name}
-                  className="bg-white rounded-3xl p-7 border border-amber-100 shadow-sm hover:shadow-lg transition-shadow duration-300"
-                >
-                  <div className="flex gap-0.5 mb-4">
-                    {[...Array(review.rating)].map((_, i) => (
-                      <span key={i} className="text-amber-400 text-lg">
-                        ★
-                      </span>
-                    ))}
-                  </div>
-                  <p className="text-stone-600 text-sm leading-relaxed mb-6 italic">
-                    &ldquo;{review.text}&rdquo;
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center font-black text-amber-700 text-sm flex-shrink-0">
-                      {review.name.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="font-bold text-stone-800 text-sm">
-                        {review.name}
-                      </p>
-                      <p className="text-xs text-stone-400">{review.location}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ═══════════════════════════════════════════════════
             WHATSAPP CTA
         ═══════════════════════════════════════════════════ */}
         <section className="py-20 bg-stone-900 relative overflow-hidden">
@@ -728,6 +476,7 @@ export default function HomePage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                {whatsappNumber && (
                 <a
                   href={`https://wa.me/${whatsappNumber}`}
                   target="_blank"
@@ -739,6 +488,7 @@ export default function HomePage() {
                   </svg>
                   {isArabic ? "تحدث معنا على واتساب" : "Chat on WhatsApp"}
                 </a>
+                )}
                 <Link
                   href="/track"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl border-2 border-stone-700 text-stone-300 hover:border-stone-500 hover:text-white font-semibold text-base transition-all duration-200"

@@ -94,18 +94,25 @@ function StatusBar({ byStatus, total }) {
 }
 
 // ─── KPI CARD ─────────────────────────────────────────────────────────────────
-function KpiCard({ icon, label, value, sub, colorClass, href }) {
+function KpiCard({ icon, label, value, sub, colorClass, href, trend }) {
   const inner = (
     <div
       className={`rounded-2xl border p-5 flex flex-col gap-2 transition-shadow hover:shadow-md ${colorClass}`}
     >
       <div className="flex items-center justify-between">
         <span className="text-2xl">{icon}</span>
-        {sub && (
-          <span className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide">
-            {sub}
-          </span>
-        )}
+        <div className="flex items-center gap-1.5">
+          {trend != null && (
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${trend >= 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
+              {trend >= 0 ? "↑" : "↓"} {Math.abs(trend)}%
+            </span>
+          )}
+          {sub && (
+            <span className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide">
+              {sub}
+            </span>
+          )}
+        </div>
       </div>
       <p className="text-xl font-black text-stone-800 leading-tight">{value}</p>
       <p className="text-xs text-stone-500">{label}</p>
@@ -228,6 +235,7 @@ export default function AdminDashboard() {
                 sub="Delivered only"
                 colorClass="bg-green-50 border-green-200"
                 href="/admin/orders?status=delivered"
+                trend={data?.trends?.confirmedRevenue}
               />
               <KpiCard
                 icon="⏳"
@@ -268,6 +276,7 @@ export default function AdminDashboard() {
                 value={data?.orders?.total ?? 0}
                 colorClass="bg-white border-stone-200"
                 href="/admin/orders"
+                trend={data?.trends?.totalOrders}
               />
               <KpiCard
                 icon="💰"
@@ -275,6 +284,7 @@ export default function AdminDashboard() {
                 value={fmt(data?.orders?.avgValue)}
                 sub="Delivered orders"
                 colorClass="bg-white border-stone-200"
+                trend={data?.trends?.avgValue}
               />
               <KpiCard
                 icon="👤"
@@ -283,6 +293,7 @@ export default function AdminDashboard() {
                 sub={`${data?.customers?.total ?? 0} total`}
                 colorClass="bg-white border-stone-200"
                 href="/admin/customers"
+                trend={data?.trends?.newCustomers}
               />
               <KpiCard
                 icon="🌶️"

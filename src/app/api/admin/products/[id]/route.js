@@ -1,25 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
+import { verifyAdmin, unauthorized } from "@/lib/adminAuth";
 import {
   validateVariantPricesAgainstCost,
   validateBundleSaleAgainstCost,
   parseWeightLabelToGrams,
   computeMarkupPercent,
 } from "@/lib/stock";
-
-const verifyToken = (request) => {
-  const auth = request.headers.get("Authorization");
-  if (!auth?.startsWith("Bearer ")) return null;
-  try {
-    return jwt.verify(
-      auth.split(" ")[1],
-      process.env.NEXTAUTH_SECRET || "alsadeksecret2026"
-    );
-  } catch {
-    return null;
-  }
-};
 
 const normalizeVariants = (variants) => {
   const list = Array.isArray(variants) ? variants : [];
@@ -36,7 +23,7 @@ const normalizeVariants = (variants) => {
 // ─── GET SINGLE PRODUCT ───────────────────────────
 export async function GET(request, context) {
   try {
-    const admin = verifyToken(request);
+    const admin = verifyAdmin(request);
     if (!admin) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
@@ -105,7 +92,7 @@ export async function GET(request, context) {
 // ─── UPDATE PRODUCT (FULL) ───────────────────────────
 export async function PUT(request, context) {
   try {
-    const admin = verifyToken(request);
+    const admin = verifyAdmin(request);
     if (!admin) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
@@ -370,7 +357,7 @@ export async function PUT(request, context) {
 // ─── PATCH PRODUCT (PARTIAL) ───────────────────────────
 export async function PATCH(request, context) {
   try {
-    const admin = verifyToken(request);
+    const admin = verifyAdmin(request);
     if (!admin) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
@@ -400,7 +387,7 @@ export async function PATCH(request, context) {
 // ─── DELETE PRODUCT ───────────────────────────
 export async function DELETE(request, context) {
   try {
-    const admin = verifyToken(request);
+    const admin = verifyAdmin(request);
     if (!admin) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },

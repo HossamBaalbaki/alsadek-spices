@@ -86,6 +86,13 @@ export async function PUT(request, context) {
       },
     });
 
+    if (allowed.images !== undefined) {
+      await prisma.product.updateMany({
+        where: { stockId: parseInt(id) },
+        data: { images: allowed.images },
+      });
+    }
+
     return NextResponse.json({
       success: true,
       message: "Stock updated",

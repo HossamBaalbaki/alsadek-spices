@@ -23,18 +23,33 @@ const securityHeaders = [
   },
 ];
 
+const allowedOrigin = process.env.NEXT_PUBLIC_SITE_URL || "";
+
 const nextConfig = {
   images: {
     domains: [],
     unoptimized: true,
   },
   async headers() {
-    return [
+    const routes = [
       {
         source: "/(.*)",
         headers: securityHeaders,
       },
     ];
+
+    if (allowedOrigin) {
+      routes.push({
+        source: "/api/(.*)",
+        headers: [
+          { key: "Access-Control-Allow-Origin",  value: allowedOrigin },
+          { key: "Access-Control-Allow-Methods", value: "GET, POST, PUT, DELETE, PATCH, OPTIONS" },
+          { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" },
+        ],
+      });
+    }
+
+    return routes;
   },
 };
 

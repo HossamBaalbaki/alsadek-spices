@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseWeightLabelToGrams } from "@/lib/stock";
 import { verifyAdmin, unauthorized } from "@/lib/adminAuth";
+import { rateLimit, getIP, tooManyRequests } from "@/lib/rateLimit";
 
 // ─── GENERATE ORDER NUMBER ───────────────────────────
 function generateOrderNumber() {
@@ -10,6 +11,12 @@ function generateOrderNumber() {
     .toString()
     .padStart(3, "0");
   return `ASQ-${timestamp}${random}`;
+}
+
+// ─── INPUT SANITIZATION ───────────────────────────
+function sanitizeStr(s, maxLen = 200) {
+  if (typeof s !== "string") return "";
+  return s.replace(/[<>]/g, "").trim().slice(0, maxLen);
 }
 
 // ─── GET ALL ORDERS (admin only) ───────────────────────────
@@ -22,8 +29,20 @@ export async function GET(request) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const skip = (page - 1) * limit;
 
+    const dateFrom = searchParams.get("dateFrom");
+    const dateTo = searchParams.get("dateTo");
+
     const where = {};
     if (status) where.status = status;
+    if (dateFrom || dateTo) {
+      where.createdAt = {};
+      if (dateFrom) where.createdAt.gte = new Date(dateFrom);
+      if (dateTo) {
+        const to = new Date(dateTo);
+        to.setHours(23, 59, 59, 999);
+        where.createdAt.lte = to;
+      }
+    }
 
     const [orders, total] = await Promise.all([
       prisma.order.findMany({
@@ -60,11 +79,16 @@ export async function GET(request) {
 
 // ─── CREATE ORDER ───────────────────────────
 export async function POST(request) {
+  // ─── RATE LIMIT: 5 orders per IP per minute (idempotency guard) ───────────
+  const ip = getIP(request);
+  const rl = rateLimit(`order:${ip}`, { windowMs: 60_000, max: 5 });
+  if (!rl.allowed) return tooManyRequests(rl.resetAt);
+
   try {
     const body = await request.json();
 
     const {
-      customer,
+      customer: rawCustomer,
       items,
       subtotal,
       deliveryFee,
@@ -72,11 +96,26 @@ export async function POST(request) {
       grandTotal,
       paymentMethod,
       deliveryZone,
-      promoCode,
+      promoCode: rawPromoCode,
     } = body;
 
+    // ─── SANITIZE INPUTS ───────────────────────────
+    const customer = rawCustomer ? {
+      firstName:  sanitizeStr(rawCustomer.firstName, 100),
+      lastName:   sanitizeStr(rawCustomer.lastName,  100),
+      phone:      sanitizeStr(rawCustomer.phone,      30),
+      email:      sanitizeStr(rawCustomer.email,     200),
+      address:    sanitizeStr(rawCustomer.address,   300),
+      building:   sanitizeStr(rawCustomer.building,  100),
+      floor:      sanitizeStr(rawCustomer.floor,      50),
+      apartment:  sanitizeStr(rawCustomer.apartment,  50),
+      city:       sanitizeStr(rawCustomer.city,      100),
+      notes:      sanitizeStr(rawCustomer.notes,     500),
+    } : null;
+    const promoCode = rawPromoCode ? sanitizeStr(rawPromoCode, 50) : null;
+
     // ─── VALIDATE ───────────────────────────
-    if (!customer || !items || items.length === 0) {
+    if (!customer || !items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
         { success: false, message: "Customer and items are required" },
         { status: 400 }
@@ -106,11 +145,15 @@ export async function POST(request) {
       }
     }
 
-    // Pre-validate products + build deduction lists
-    const singleDeductions = []; // { stockId, grams }
-    const bundleDeductions = []; // { productId, quantity }
+    // Pre-validate products + build deduction metadata (without touching stock yet)
+    const singleDeductions = []; // { stockId, grams, nameEn }
+    const bundleDeductions = []; // { productId, quantity, nameEn }
 
     for (const item of items) {
+      if (!item.productId || typeof item.productId !== "number") {
+        return NextResponse.json({ success: false, message: "Invalid item in order" }, { status: 400 });
+      }
+
       const product = await prisma.product.findUnique({
         where: { id: item.productId },
         include: { stock: true },
@@ -118,7 +161,7 @@ export async function POST(request) {
 
       if (!product) {
         return NextResponse.json(
-          { success: false, message: `Product not found: ${item.nameEn || item.productId}` },
+          { success: false, message: `Product not found: ${sanitizeStr(item.nameEn || String(item.productId))}` },
           { status: 400 }
         );
       }
@@ -126,7 +169,7 @@ export async function POST(request) {
       if (product.type === "single") {
         if (!product.stock) {
           return NextResponse.json(
-            { success: false, message: `Stock not linked for product: ${item.nameEn || product.nameEn}` },
+            { success: false, message: `Stock not linked for product: ${product.nameEn}` },
             { status: 400 }
           );
         }
@@ -145,50 +188,58 @@ export async function POST(request) {
 
         if (!unitGrams || unitGrams <= 0) {
           return NextResponse.json(
-            { success: false, message: `Invalid variant weight for: ${item.nameEn || product.nameEn}` },
+            { success: false, message: `Invalid variant weight for: ${product.nameEn}` },
             { status: 400 }
           );
         }
 
         const neededGrams = unitGrams * (Number(item.quantity) || 1);
+        // Early stock check (for fast UX feedback); race condition is fixed atomically inside the transaction
         if (Number(product.stock.currentStockGrams) < neededGrams) {
           return NextResponse.json(
-            { success: false, message: `Insufficient stock for: ${item.nameEn || product.nameEn}` },
+            { success: false, message: `Insufficient stock for: ${product.nameEn}` },
             { status: 409 }
           );
         }
 
-        singleDeductions.push({ stockId: product.stock.id, grams: neededGrams, unitGrams });
+        singleDeductions.push({ stockId: product.stock.id, grams: neededGrams, unitGrams, nameEn: product.nameEn });
       } else if (product.type === "bundle") {
         const qty = Number(item.quantity) || 1;
         const available = Number(product.bundleStock) || 0;
 
         if (available < qty) {
           return NextResponse.json(
-            { success: false, message: `Insufficient finished stock for: ${item.nameEn || product.nameEn}` },
+            { success: false, message: `Insufficient finished stock for: ${product.nameEn}` },
             { status: 409 }
           );
         }
 
-        bundleDeductions.push({ productId: product.id, quantity: qty });
+        bundleDeductions.push({ productId: product.id, quantity: qty, nameEn: product.nameEn });
       }
     }
 
     const order = await prisma.$transaction(async (tx) => {
-      // Deduct single-product stock
+      // ─── ATOMIC STOCK DEDUCTION (fixes race condition) ───────────────────
+      // updateMany with WHERE stock >= needed ensures the check+decrement is one atomic SQL statement.
+      // Two concurrent requests cannot both succeed — the second will see count=0 and throw.
       for (const d of singleDeductions) {
-        await tx.stock.update({
-          where: { id: d.stockId },
+        const result = await tx.stock.updateMany({
+          where: { id: d.stockId, currentStockGrams: { gte: d.grams } },
           data: { currentStockGrams: { decrement: d.grams } },
         });
+        if (result.count === 0) {
+          throw new Error(`STOCK_INSUFFICIENT:${d.nameEn}`);
+        }
       }
 
-      // Deduct bundle finished-goods stock
       for (const d of bundleDeductions) {
-        await tx.product.update({
-          where: { id: d.productId },
+        const result = await tx.product.updateMany({
+          where: { id: d.productId, bundleStock: { gte: d.quantity } },
           data: { bundleStock: { decrement: d.quantity } },
         });
+        if (result.count === 0) {
+          throw new Error(`STOCK_INSUFFICIENT:${d.nameEn}`);
+        }
       }
 
       // Create or update customer
@@ -200,15 +251,15 @@ export async function POST(request) {
         dbCustomer = await tx.customer.create({
           data: {
             firstName: customer.firstName,
-            lastName: customer.lastName,
-            phone: customer.phone,
-            email: customer.email || null,
-            address: customer.address || null,
-            building: customer.building || null,
-            floor: customer.floor || null,
+            lastName:  customer.lastName,
+            phone:     customer.phone,
+            email:     customer.email     || null,
+            address:   customer.address   || null,
+            building:  customer.building  || null,
+            floor:     customer.floor     || null,
             apartment: customer.apartment || null,
-            city: customer.city || null,
-            notes: customer.notes || null,
+            city:      customer.city      || null,
+            notes:     customer.notes     || null,
           },
         });
       } else {
@@ -216,33 +267,47 @@ export async function POST(request) {
           where: { id: dbCustomer.id },
           data: {
             firstName: customer.firstName,
-            lastName: customer.lastName,
-            email: customer.email || dbCustomer.email,
-            address: customer.address || dbCustomer.address,
-            building: customer.building || dbCustomer.building,
-            floor: customer.floor || dbCustomer.floor,
+            lastName:  customer.lastName,
+            email:     customer.email     || dbCustomer.email,
+            address:   customer.address   || dbCustomer.address,
+            building:  customer.building  || dbCustomer.building,
+            floor:     customer.floor     || dbCustomer.floor,
             apartment: customer.apartment || dbCustomer.apartment,
-            city: customer.city || dbCustomer.city,
-            notes: customer.notes || dbCustomer.notes,
+            city:      customer.city      || dbCustomer.city,
+            notes:     customer.notes     || dbCustomer.notes,
           },
         });
       }
 
       const orderNumber = generateOrderNumber();
 
+      // ─── PROMO usedCount INSIDE TRANSACTION (fixes promo race condition) ───
+      // Re-check inside the transaction so the increment rolls back if order creation fails.
+      if (promoCode) {
+        const promo = await tx.promoCode.findUnique({
+          where: { code: promoCode.toUpperCase().trim() },
+        });
+        if (promo && promo.active && (!promo.maxUses || promo.usedCount < promo.maxUses)) {
+          await tx.promoCode.update({
+            where: { id: promo.id },
+            data: { usedCount: { increment: 1 } },
+          });
+        }
+      }
+
       const createdOrder = await tx.order.create({
         data: {
           orderNumber,
           customerId: dbCustomer.id,
-          subtotal: subtotal || 0,
-          deliveryFee: deliveryFee || 0,
+          subtotal:       subtotal       || 0,
+          deliveryFee:    deliveryFee    || 0,
           discountAmount: discountAmount || 0,
-          grandTotal: grandTotal || 0,
-          paymentMethod: paymentMethod || "cash",
-          paymentStatus: "pending",
-          status: "pending",
-          deliveryZone: deliveryZone || null,
-          promoCode: promoCode || null,
+          grandTotal:     grandTotal     || 0,
+          paymentMethod:  paymentMethod  || "cash",
+          paymentStatus:  "pending",
+          status:         "pending",
+          deliveryZone:   deliveryZone   || null,
+          promoCode:      promoCode      || null,
           items: {
             create: items.map((item) => {
               let grams =
@@ -258,16 +323,15 @@ export async function POST(request) {
               }
 
               const row = {
-                productId: item.productId,
-                nameEn: item.nameEn,
-                nameAr: item.nameAr,
-                price: item.price,
-                quantity: item.quantity,
-                weight: item.weight || null,
-                type: item.type || "single",
-                grams: grams > 0 ? grams : undefined,
-                gramsDeducted:
-                  grams > 0 ? grams * (Number(item.quantity) || 1) : undefined,
+                productId:     item.productId,
+                nameEn:        sanitizeStr(item.nameEn || ""),
+                nameAr:        sanitizeStr(item.nameAr || ""),
+                price:         Number(item.price)    || 0,
+                quantity:      Number(item.quantity) || 1,
+                weight:        item.weight || null,
+                type:          item.type   || "single",
+                grams:         grams > 0 ? grams : undefined,
+                gramsDeducted: grams > 0 ? grams * (Number(item.quantity) || 1) : undefined,
               };
 
               if (item.bundleBreakdown) {
@@ -287,18 +351,6 @@ export async function POST(request) {
       return createdOrder;
     });
 
-    // Increment usedCount outside the transaction so a missing code never breaks order creation
-    if (promoCode) {
-      try {
-        await prisma.promoCode.updateMany({
-          where: { code: promoCode },
-          data: { usedCount: { increment: 1 } },
-        });
-      } catch (promoErr) {
-        console.error("Promo usedCount increment failed (non-fatal):", promoErr);
-      }
-    }
-
     return NextResponse.json(
       {
         success: true,
@@ -308,8 +360,15 @@ export async function POST(request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("POST /api/orders error:", error);
+    if (error.message?.startsWith("STOCK_INSUFFICIENT:")) {
+      const productName = error.message.replace("STOCK_INSUFFICIENT:", "");
+      return NextResponse.json(
+        { success: false, message: `Insufficient stock for: ${productName}` },
+        { status: 409 }
+      );
+    }
 
+    console.error("POST /api/orders error:", error);
     return NextResponse.json(
       { success: false, message: "Failed to create order" },
       { status: 500 }

@@ -308,6 +308,7 @@ export default function OrderDetailPage() {
   const [updating, setUpdating] = useState(false);
   const [toast, setToast] = useState({ msg: "", type: "success" });
   const [showReceipt, setShowReceipt] = useState(false);
+  const [confirmStatus, setConfirmStatus] = useState(null); // newStatus string
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -404,6 +405,32 @@ export default function OrderDetailPage() {
     <>
       <Toast msg={toast.msg} type={toast.type} />
       {showReceipt && <ThermalReceipt order={order} onClose={() => setShowReceipt(false)} />}
+
+      {/* ─── STATUS CONFIRMATION MODAL ─── */}
+      {confirmStatus && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <h3 className="text-lg font-black text-stone-800 mb-2">Confirm Status Change</h3>
+            <p className="text-sm text-stone-600 mb-6">
+              {confirmStatus === "cancelled"
+                ? "Cancel this order? Stock will be restored and this cannot be undone."
+                : `Change status to "${STATUS_META[confirmStatus]?.label}"?`}
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmStatus(null)} className="btn btn-outline flex-1">
+                Go Back
+              </button>
+              <button
+                onClick={async () => { const s = confirmStatus; setConfirmStatus(null); await updateStatus(s); }}
+                disabled={updating}
+                className={`btn flex-1 text-white border-0 ${confirmStatus === "cancelled" ? "bg-red-600 hover:bg-red-700" : "bg-amber-700 hover:bg-amber-800"}`}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col gap-6 max-w-5xl mx-auto">
 
@@ -623,7 +650,7 @@ export default function OrderDetailPage() {
                   {STATUS_FLOW.filter((s) => s !== order.status).map((s) => (
                     <button
                       key={s}
-                      onClick={() => updateStatus(s)}
+                      onClick={() => setConfirmStatus(s)}
                       disabled={updating}
                       className="w-full text-left px-4 py-2.5 rounded-xl border border-stone-200 text-sm font-semibold text-stone-700 hover:bg-amber-50 hover:border-amber-300 transition-all disabled:opacity-50"
                     >
@@ -631,7 +658,7 @@ export default function OrderDetailPage() {
                     </button>
                   ))}
                   <button
-                    onClick={() => updateStatus("cancelled")}
+                    onClick={() => setConfirmStatus("cancelled")}
                     disabled={updating}
                     className="w-full text-left px-4 py-2.5 rounded-xl border border-red-200 text-sm font-semibold text-red-600 hover:bg-red-50 transition-all disabled:opacity-50 mt-2"
                   >

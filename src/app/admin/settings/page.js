@@ -12,8 +12,15 @@ const DEFAULTS = {
   freeDeliveryThreshold: 200,
 };
 
+const DEFAULT_TICKER_EN = ["🌶️ 100% Natural Spices", "🚚 Same-Day Delivery in Doha", "⭐ Premium Quality Guaranteed", "💰 Best Prices in Qatar", "🎁 Elegant Gift Bundles", "📦 Professional Packaging"];
+const DEFAULT_TICKER_AR = ["🌶️ بهارات طبيعية 100%", "🚚 توصيل في نفس اليوم بالدوحة", "⭐ جودة فاخرة مضمونة", "💰 أفضل الأسعار في قطر", "🎁 باقات هدايا راقية", "📦 تغليف احترافي"];
+
 export default function AdminSettingsPage() {
-  const [form, setForm] = useState(DEFAULTS);
+  const [form, setForm] = useState({
+    ...DEFAULTS,
+    tickerItemsEn: DEFAULT_TICKER_EN.join("\n"),
+    tickerItemsAr: DEFAULT_TICKER_AR.join("\n"),
+  });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
@@ -40,6 +47,8 @@ export default function AdminSettingsPage() {
           promoSubtitleEn: data.data?.promoSubtitleEn || DEFAULTS.promoSubtitleEn,
           promoSubtitleAr: data.data?.promoSubtitleAr || DEFAULTS.promoSubtitleAr,
           freeDeliveryThreshold: Number(data.data?.freeDeliveryThreshold ?? DEFAULTS.freeDeliveryThreshold),
+          tickerItemsEn: (data.data?.tickerItemsEn?.length ? data.data.tickerItemsEn : DEFAULT_TICKER_EN).join("\n"),
+          tickerItemsAr: (data.data?.tickerItemsAr?.length ? data.data.tickerItemsAr : DEFAULT_TICKER_AR).join("\n"),
         });
       } catch (e) {
         if (!active) return;
@@ -61,10 +70,15 @@ export default function AdminSettingsPage() {
     setMsg("");
     try {
       const token = localStorage.getItem("adminToken");
+      const payload = {
+        ...form,
+        tickerItemsEn: String(form.tickerItemsEn || "").split("\n").map((s) => s.trim()).filter(Boolean),
+        tickerItemsAr: String(form.tickerItemsAr || "").split("\n").map((s) => s.trim()).filter(Boolean),
+      };
       const res = await fetch("/api/admin/site-settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Failed to save settings");
@@ -141,6 +155,33 @@ export default function AdminSettingsPage() {
             <div>
               <label className="block text-sm font-semibold text-stone-700 mb-2">العربية</label>
               <textarea dir="rtl" className="input w-full min-h-[90px]" value={form.promoSubtitleAr} onChange={(e) => onChange("promoSubtitleAr", e.target.value)} required />
+            </div>
+          </div>
+        </div>
+
+        {/* Ticker Items */}
+        <div>
+          <h3 className="font-bold text-stone-800 mb-1">Ticker Items</h3>
+          <p className="text-stone-500 text-xs mb-3">One item per line. These scroll across the marquee banner on the homepage.</p>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-stone-700 mb-2">English</label>
+              <textarea
+                className="input w-full min-h-[160px] font-mono text-sm"
+                value={form.tickerItemsEn}
+                onChange={(e) => onChange("tickerItemsEn", e.target.value)}
+                placeholder={"🌶️ 100% Natural Spices\n🚚 Same-Day Delivery in Doha"}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-stone-700 mb-2">العربية</label>
+              <textarea
+                dir="rtl"
+                className="input w-full min-h-[160px] font-mono text-sm"
+                value={form.tickerItemsAr}
+                onChange={(e) => onChange("tickerItemsAr", e.target.value)}
+                placeholder={"🌶️ بهارات طبيعية 100%\n🚚 توصيل في نفس اليوم بالدوحة"}
+              />
             </div>
           </div>
         </div>

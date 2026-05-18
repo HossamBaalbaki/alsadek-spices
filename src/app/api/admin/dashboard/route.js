@@ -2,6 +2,35 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAdmin } from "@/lib/adminAuth";
 
+function getPrevDateRange(period) {
+  const now = new Date();
+  const prevStart = new Date();
+  const prevEnd = new Date();
+
+  switch (period) {
+    case "today":
+      prevStart.setDate(now.getDate() - 1); prevStart.setHours(0, 0, 0, 0);
+      prevEnd.setDate(now.getDate() - 1);   prevEnd.setHours(23, 59, 59, 999);
+      break;
+    case "week":
+      prevStart.setDate(now.getDate() - 13); prevStart.setHours(0, 0, 0, 0);
+      prevEnd.setDate(now.getDate() - 7);    prevEnd.setHours(23, 59, 59, 999);
+      break;
+    case "month":
+      prevStart.setMonth(now.getMonth() - 1, 1); prevStart.setHours(0, 0, 0, 0);
+      prevEnd.setDate(0);                        prevEnd.setHours(23, 59, 59, 999);
+      break;
+    case "year":
+      prevStart.setFullYear(now.getFullYear() - 1, 0, 1);  prevStart.setHours(0, 0, 0, 0);
+      prevEnd.setFullYear(now.getFullYear() - 1, 11, 31);  prevEnd.setHours(23, 59, 59, 999);
+      break;
+    default:
+      prevStart.setMonth(now.getMonth() - 1, 1); prevStart.setHours(0, 0, 0, 0);
+      prevEnd.setDate(0);                        prevEnd.setHours(23, 59, 59, 999);
+  }
+  return { start: prevStart, end: prevEnd };
+}
+
 function getDateRange(period) {
   const now = new Date();
   const start = new Date();
@@ -114,13 +143,18 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const period = searchParams.get("period") || "month";
   const { start, end } = getDateRange(period);
+  const { start: prevStart, end: prevEnd } = getPrevDateRange(period);
 
   try {
-    const [orders, newCustomers, totalCustomers, totalProducts, recentOrders, lowStockItems] =
+    const [orders, prevOrders, newCustomers, totalCustomers, totalProducts, recentOrders, lowStockItems] =
       await Promise.all([
         prisma.order.findMany({
           where: { createdAt: { gte: start, lte: end } },
           select: { id: true, status: true, grandTotal: true, createdAt: true },
+        }),
+        prisma.order.findMany({
+          where: { createdAt: { gte: prevStart, lte: prevEnd } },
+          select: { id: true, status: true, grandTotal: true },
         }),
         prisma.customer.count({ where: { createdAt: { gte: start, lte: end } } }),
         prisma.customer.count(),
@@ -174,6 +208,15 @@ export async function GET(request) {
     const deliveredCount = byStatus.delivered || 0;
     const avgOrderValue = deliveredCount > 0 ? confirmedRevenue / deliveredCount : 0;
 
+    // Previous period metrics for trend indicators
+    const prevConfirmed = prevOrders.filter((o) => o.status === "delivered").reduce((s, o) => s + o.grandTotal, 0);
+    const prevTotal = prevOrders.length;
+    const prevNewCustomers = await prisma.customer.count({ where: { createdAt: { gte: prevStart, lte: prevEnd } } });
+    const prevDelivered = prevOrders.filter((o) => o.status === "delivered").length;
+    const prevAvg = prevDelivered > 0 ? prevConfirmed / prevDelivered : 0;
+
+    const trend = (curr, prev) => prev === 0 ? (curr > 0 ? 100 : 0) : Math.round(((curr - prev) / prev) * 100);
+
     // Filter low stock in JS: currentStockGrams <= lowStockThresholdGrams
     const lowStock = lowStockItems
       .filter((s) => Number(s.currentStockGrams) <= Number(s.lowStockThresholdGrams))
@@ -206,6 +249,12 @@ export async function GET(request) {
         },
         customers: { new: newCustomers, total: totalCustomers },
         products: { total: totalProducts },
+        trends: {
+          confirmedRevenue: trend(confirmedRevenue, prevConfirmed),
+          totalOrders: trend(orders.length, prevTotal),
+          newCustomers: trend(newCustomers, prevNewCustomers),
+          avgValue: trend(avgOrderValue, prevAvg),
+        },
         chart: buildChartData(period, orders),
         recentOrders,
         lowStock,

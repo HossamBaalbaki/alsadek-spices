@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { usePolling } from "@/hooks/usePolling";
 import { useLanguage } from "@/context/LanguageContext";
@@ -32,6 +32,8 @@ function ShopPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileFilter, setShowMobileFilter] = useState(false);
   const [page, setPage] = useState(1);
+  const pageRef = useRef(1);
+  const [maxPrice, setMaxPrice] = useState(500);
 
   const applyClientFilters = useCallback((items) => {
     let filtered = items;
@@ -65,6 +67,18 @@ function ShopPage() {
   const fetchProducts = useCallback(async (silent = false) => {
     if (!silent) { setLoading(true); setError(null); }
     try {
+      // Silent poll: re-fetch all currently loaded pages to keep the list fresh
+      // without discarding products the user loaded via "Load More"
+      if (silent && pageRef.current > 1) {
+        const pageNums = Array.from({ length: pageRef.current }, (_, i) => i + 1);
+        const results = await Promise.all(
+          pageNums.map((pg) => fetch(`/api/products?${buildParams(pg)}`).then((r) => r.json()))
+        );
+        const allProducts = results.flatMap((d) => d.success ? applyClientFilters(d.data) : []);
+        setProducts(allProducts);
+        return;
+      }
+
       const res = await fetch(`/api/products?${buildParams(1)}`);
       const data = await res.json();
       if (data.success) {
@@ -72,6 +86,7 @@ function ShopPage() {
         setProducts(filtered);
         setTotalProducts(data.pagination.total);
         setHasMore(data.data.length === 12);
+        pageRef.current = 1;
         setPage(1);
       } else {
         if (!silent) setError("Failed to load products");
@@ -94,6 +109,7 @@ function ShopPage() {
       if (data.success) {
         const filtered = applyClientFilters(data.data);
         setProducts((prev) => [...prev, ...filtered]);
+        pageRef.current = nextPage;
         setPage(nextPage);
         setHasMore(data.data.length === 12);
       }
@@ -108,6 +124,14 @@ function ShopPage() {
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  // ─── FETCH MAX PRICE ONCE ───────────────────────────
+  useEffect(() => {
+    fetch("/api/products/price-range")
+      .then((r) => r.json())
+      .then((d) => { if (d.success && d.maxPrice > 0) setMaxPrice(d.maxPrice); })
+      .catch(() => {});
+  }, []);
 
   usePolling(() => fetchProducts(true), 30000);
 
@@ -135,11 +159,11 @@ function ShopPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={isArabic ? "ابحث عن منتج..." : "Search products..."}
-                className="input w-full pl-10 bg-white/10 border-white/20 text-white placeholder-white/50 focus:bg-white focus:text-stone-800 focus:placeholder-stone-400"
+                className={`input w-full ${isArabic ? "pr-10" : "pl-10"} bg-white/10 border-white/20 text-white placeholder-white/50 focus:bg-white focus:text-stone-800 focus:placeholder-stone-400`}
               />
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-white/50"
+                className={`h-5 w-5 absolute ${isArabic ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 text-white/50`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -172,6 +196,7 @@ function ShopPage() {
                   setPriceRange={setPriceRange}
                   sortBy={sortBy}
                   setSortBy={setSortBy}
+                  maxPrice={maxPrice}
                   isMobile={false}
                 />
               </div>
@@ -240,8 +265,8 @@ function ShopPage() {
               {/* ─── PRODUCTS GRID ─────────────────────────── */}
               {!loading && !error && products.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {products.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                  {products.map((product, i) => (
+                    <ProductCard key={product.id} product={product} priority={i < 4} />
                   ))}
                 </div>
               )}
@@ -280,7 +305,7 @@ function ShopPage() {
                       setSelectedCategory("all");
                       setSelectedType("all");
                       setSelectedLabels([]);
-                      setPriceRange([0, 500]);
+                      setPriceRange([0, maxPrice]);
                       setSearchQuery("");
                     }}
                     className="btn btn-primary"
@@ -319,6 +344,7 @@ function ShopPage() {
                 setPriceRange={setPriceRange}
                 sortBy={sortBy}
                 setSortBy={setSortBy}
+                maxPrice={maxPrice}
                 onClose={() => setShowMobileFilter(false)}
                 isMobile={true}
               />

@@ -17,14 +17,14 @@ export async function GET(request) {
       orderBy: { sortOrder: "asc" },
       include: {
         _count: {
-          select: { products: { where: { active: true } } },
+          select: { stocks: { where: { active: true } } },
         },
       },
     });
 
     const formatted = categories.map((cat) => ({
       ...cat,
-      productCount: cat._count.products,
+      productCount: cat._count.stocks,
       _count: undefined,
     }));
 

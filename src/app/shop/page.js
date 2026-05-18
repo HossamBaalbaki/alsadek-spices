@@ -36,32 +36,23 @@ function ShopPage() {
   const [maxPrice, setMaxPrice] = useState(500);
 
   const applyClientFilters = useCallback((items) => {
-    let filtered = items;
-    if (selectedType !== "all") {
-      filtered = filtered.filter((p) => p.type === selectedType);
-    }
-    if (selectedLabels.length > 0) {
-      filtered = filtered.filter((p) => {
-        const labels = p.labels || {};
-        return selectedLabels.some((l) => labels[l] === true);
-      });
-    }
-    filtered = filtered.filter((p) => {
+    return items.filter((p) => {
       const price = p.type === "bundle" ? p.price : p.variants?.[0]?.price || 0;
       return price >= priceRange[0] && price <= priceRange[1];
     });
-    return filtered;
-  }, [selectedType, selectedLabels, priceRange]);
+  }, [priceRange]);
 
   const buildParams = useCallback((pg) => {
     const params = new URLSearchParams();
     if (selectedCategory !== "all") params.set("category", selectedCategory);
+    if (selectedType !== "all") params.set("type", selectedType);
     if (searchQuery) params.set("search", searchQuery);
     if (sortBy) params.set("sort", sortBy);
+    selectedLabels.forEach((label) => params.append("label", label));
     params.set("page", String(pg));
     params.set("limit", "12");
     return params;
-  }, [selectedCategory, searchQuery, sortBy]);
+  }, [selectedCategory, selectedType, selectedLabels, searchQuery, sortBy]);
 
   // ─── FETCH PAGE 1 (replaces list) ───────────────────────────
   const fetchProducts = useCallback(async (silent = false) => {
@@ -91,7 +82,7 @@ function ShopPage() {
         const filtered = applyClientFilters(data.data);
         setProducts(filtered);
         setTotalProducts(data.pagination.total);
-        setHasMore(data.data.length === 12);
+        setHasMore(data.pagination.page < data.pagination.pages);
         pageRef.current = 1;
         setPage(1);
       } else {
@@ -117,7 +108,7 @@ function ShopPage() {
         setProducts((prev) => [...prev, ...filtered]);
         pageRef.current = nextPage;
         setPage(nextPage);
-        setHasMore(data.data.length === 12);
+        setHasMore(data.pagination.page < data.pagination.pages);
       }
     } catch (err) {
       console.error("Load more error:", err);

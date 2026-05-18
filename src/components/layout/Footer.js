@@ -19,7 +19,7 @@ export default function Footer() {
 
   // ─── CUSTOMER SERVICE LINKS ───────────────────────────
   const serviceLinks = [
-    { label: t.footer.trackOrder, href: "/track-order" },
+    { label: t.footer.trackOrder, href: "/track" },
     { label: t.footer.faq, href: "/faq" },
     { label: t.footer.returns, href: "/returns" },
     { label: t.footer.privacy, href: "/privacy" },

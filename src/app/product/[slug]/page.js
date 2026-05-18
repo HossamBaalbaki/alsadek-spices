@@ -351,7 +351,6 @@ export default function ProductPage() {
                       const vLabel = getVariantLabel(variant);
                       const isSelected =
                         getVariantLabel(selectedVariant) === vLabel;
-                      const vPrice = getVariantPriceNumber(variant);
                       return (
                         <button
                           key={`${vLabel}-${index}`}
@@ -365,9 +364,6 @@ export default function ProductPage() {
                           }`}
                         >
                           {vLabel}
-                          <span className="block text-xs mt-0.5">
-                            {Number(vPrice).toFixed(2)} {t.general.qar}
-                          </span>
                         </button>
                       );
                     })}

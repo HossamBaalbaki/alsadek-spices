@@ -36,18 +36,24 @@ export async function GET(request) {
     const sort = searchParams.get("sort") || "newest";
     const featured = searchParams.get("featured");
     const bestSeller = searchParams.get("bestSeller");
+    const type = searchParams.get("type");
+    const labels = searchParams.getAll("label");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "12");
     const skip = (page - 1) * limit;
 
     const where = { active: true, slug: { not: null } };
     if (category && category !== "all") where.category = { slug: category };
+    if (type && type !== "all") where.type = type;
     if (search) {
       where.OR = [
         { nameEn: { contains: search, mode: "insensitive" } },
         { nameAr: { contains: search, mode: "insensitive" } },
         { descriptionEn: { contains: search, mode: "insensitive" } },
       ];
+    }
+    if (labels.length > 0) {
+      where.AND = labels.map((label) => ({ labels: { path: [label], equals: true } }));
     }
     if (featured === "true") where.featured = true;
     if (bestSeller === "true") where.bestSeller = true;

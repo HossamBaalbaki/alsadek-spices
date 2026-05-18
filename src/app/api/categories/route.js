@@ -17,7 +17,7 @@ export async function GET(request) {
       orderBy: { sortOrder: "asc" },
       include: {
         _count: {
-          select: { stocks: { where: { active: true } } },
+          select: { stocks: { where: { active: true, slug: { not: null } } } },
         },
       },
     });

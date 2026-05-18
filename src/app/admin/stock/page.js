@@ -4,17 +4,18 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePolling } from "@/hooks/usePolling";
 
-const formatGrams = (g) => {
-  const n = Number(g) || 0;
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)} ton`;
-  if (n >= 1000) return `${(n / 1000).toFixed(2)} kg`;
-  return `${n.toFixed(0)} g`;
+const getPrice = (s) => {
+  if (s.type === "bundle") return Number(s.price) || 0;
+  const variants = Array.isArray(s.variants) ? s.variants : [];
+  if (variants.length > 0) return Number(variants[0]?.price) || 0;
+  return Number(s.price) || 0;
 };
 
 export default function AdminStockPage() {
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [lowOnly, setLowOnly] = useState(false);
 
   const fetchStocks = async (lowFilter, silent = false) => {
@@ -63,16 +64,23 @@ export default function AdminStockPage() {
     }
   };
 
-  const filtered = stocks.filter(
-    (s) =>
+  const isLow = (s) =>
+    Number(s.currentStockPcs) > 0 &&
+    Number(s.currentStockPcs) <= Number(s.lowStockThresholdPcs || 5);
+  const isEmpty = (s) => Number(s.currentStockPcs) <= 0;
+
+  const filtered = stocks.filter((s) => {
+    const matchSearch =
       !search ||
       s.nameEn.toLowerCase().includes(search.toLowerCase()) ||
-      s.nameAr.includes(search)
-  );
+      s.nameAr.includes(search);
+    const matchType = typeFilter === "all" || s.type === typeFilter;
+    return matchSearch && matchType;
+  });
 
-  const isLow = (s) =>
-    Number(s.currentStockGrams) <= Number(s.lowStockThresholdGrams);
-  const isEmpty = (s) => Number(s.currentStockGrams) <= 0;
+  const totalSingle = stocks.filter((s) => s.type === "single").length;
+  const totalBundle = stocks.filter((s) => s.type === "bundle").length;
+  const totalLow = stocks.filter((s) => isLow(s) || isEmpty(s)).length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -81,12 +89,51 @@ export default function AdminStockPage() {
         <div>
           <h2 className="text-2xl font-black text-stone-800">Stock / Inventory</h2>
           <p className="text-stone-500 text-sm mt-1">
-            {filtered.length} stock item{filtered.length === 1 ? "" : "s"}
+            {filtered.length} item{filtered.length === 1 ? "" : "s"}
+            {totalLow > 0 && (
+              <span className="ml-2 text-red-600 font-semibold">
+                · {totalLow} need attention
+              </span>
+            )}
           </p>
         </div>
         <Link href="/admin/stock/new" className="btn btn-primary">
           + Add Stock
         </Link>
+      </div>
+
+      {/* STATS PILLS */}
+      <div className="flex gap-3 flex-wrap">
+        <button
+          onClick={() => setTypeFilter("all")}
+          className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
+            typeFilter === "all"
+              ? "bg-stone-800 text-white border-stone-800"
+              : "bg-white text-stone-600 border-stone-200 hover:border-stone-400"
+          }`}
+        >
+          All ({stocks.length})
+        </button>
+        <button
+          onClick={() => setTypeFilter("single")}
+          className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
+            typeFilter === "single"
+              ? "bg-amber-600 text-white border-amber-600"
+              : "bg-white text-stone-600 border-stone-200 hover:border-stone-400"
+          }`}
+        >
+          Single ({totalSingle})
+        </button>
+        <button
+          onClick={() => setTypeFilter("bundle")}
+          className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
+            typeFilter === "bundle"
+              ? "bg-purple-600 text-white border-purple-600"
+              : "bg-white text-stone-600 border-stone-200 hover:border-stone-400"
+          }`}
+        >
+          Bundle ({totalBundle})
+        </button>
       </div>
 
       {/* FILTERS */}
@@ -137,7 +184,7 @@ export default function AdminStockPage() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-stone-400">
             <div className="text-5xl mb-3">📦</div>
-            <p className="font-semibold">No stock items yet</p>
+            <p className="font-semibold">No stock items found</p>
             <p className="text-sm mt-1">Click &ldquo;Add Stock&rdquo; to create one.</p>
           </div>
         ) : (
@@ -152,16 +199,13 @@ export default function AdminStockPage() {
                     Category
                   </th>
                   <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase">
-                    Current / Total
+                    Stock (pcs)
                   </th>
                   <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase">
-                    Cost / g
+                    Price
                   </th>
                   <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase">
-                    Markup
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase">
-                    Used in
+                    In Bundles
                   </th>
                   <th className="text-left py-3 px-4 text-xs font-bold text-stone-500 uppercase">
                     Active
@@ -183,6 +227,7 @@ export default function AdminStockPage() {
                         : "hover:bg-stone-50"
                     }`}
                   >
+                    {/* ITEM */}
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -198,13 +243,32 @@ export default function AdminStockPage() {
                           )}
                         </div>
                         <div>
-                          <p className="font-bold text-stone-800 text-sm">
-                            {s.nameEn}
-                          </p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-bold text-stone-800 text-sm">
+                              {s.nameEn}
+                            </p>
+                            {s.type === "bundle" && (
+                              <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full">
+                                BUNDLE
+                              </span>
+                            )}
+                            {s.featured && (
+                              <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">
+                                ⭐ FEATURED
+                              </span>
+                            )}
+                            {s.bestSeller && (
+                              <span className="text-[10px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">
+                                🔥 BEST
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-stone-400">{s.nameAr}</p>
                         </div>
                       </div>
                     </td>
+
+                    {/* CATEGORY */}
                     <td className="py-4 px-4">
                       {s.category ? (
                         <span className="text-xs font-semibold bg-stone-100 text-stone-600 px-2 py-1 rounded-full">
@@ -214,46 +278,56 @@ export default function AdminStockPage() {
                         <span className="text-xs text-stone-400">—</span>
                       )}
                     </td>
+
+                    {/* STOCK PCS */}
                     <td className="py-4 px-4">
-                      <div>
-                        <p
-                          className={`text-sm font-bold ${
-                            isEmpty(s)
-                              ? "text-red-700"
-                              : isLow(s)
-                              ? "text-orange-700"
-                              : "text-stone-800"
-                          }`}
-                        >
-                          {formatGrams(s.currentStockGrams)}
-                        </p>
-                        <p className="text-xs text-stone-400">
-                          / {formatGrams(s.totalStockGrams)}
-                        </p>
-                        {isEmpty(s) && (
-                          <span className="inline-block mt-1 text-[10px] font-bold bg-red-600 text-white px-2 py-0.5 rounded-full">
-                            OUT OF STOCK
-                          </span>
-                        )}
-                        {!isEmpty(s) && isLow(s) && (
-                          <span className="inline-block mt-1 text-[10px] font-bold bg-orange-500 text-white px-2 py-0.5 rounded-full">
-                            LOW
-                          </span>
-                        )}
-                      </div>
+                      <p
+                        className={`text-sm font-bold ${
+                          isEmpty(s)
+                            ? "text-red-700"
+                            : isLow(s)
+                            ? "text-orange-700"
+                            : "text-stone-800"
+                        }`}
+                      >
+                        {Number(s.currentStockPcs)} pcs
+                      </p>
+                      {isEmpty(s) && (
+                        <span className="inline-block mt-1 text-[10px] font-bold bg-red-600 text-white px-2 py-0.5 rounded-full">
+                          OUT OF STOCK
+                        </span>
+                      )}
+                      {!isEmpty(s) && isLow(s) && (
+                        <span className="inline-block mt-1 text-[10px] font-bold bg-orange-500 text-white px-2 py-0.5 rounded-full">
+                          LOW
+                        </span>
+                      )}
                     </td>
-                    <td className="py-4 px-4 text-sm text-stone-700">
-                      {Number(s.costPerGram).toFixed(4)}
+
+                    {/* PRICE */}
+                    <td className="py-4 px-4">
+                      {getPrice(s) > 0 ? (
+                        <span className="text-sm font-bold text-stone-800">
+                          {getPrice(s).toFixed(2)}{" "}
+                          <span className="text-xs font-normal text-stone-400">QAR</span>
+                        </span>
+                      ) : (
+                        <span className="text-xs text-stone-400">—</span>
+                      )}
                     </td>
-                    <td className="py-4 px-4 text-sm font-bold text-stone-800">
-                      {s.pricingRule ? `${Number(s.pricingRule.markupPercent).toFixed(0)}%` : "—"}
+
+                    {/* IN BUNDLES */}
+                    <td className="py-4 px-4">
+                      {Number(s._count?.inBundles) > 0 ? (
+                        <span className="text-xs font-semibold bg-purple-50 text-purple-700 px-2 py-1 rounded-full">
+                          {s._count.inBundles} bundle{s._count.inBundles === 1 ? "" : "s"}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-stone-400">—</span>
+                      )}
                     </td>
-                    <td className="py-4 px-4 text-xs text-stone-500">
-                      {s._count?.products || 0} product
-                      {(s._count?.products || 0) === 1 ? "" : "s"} ·{" "}
-                      {s._count?.bundleItems || 0} bundle
-                      {(s._count?.bundleItems || 0) === 1 ? "" : "s"}
-                    </td>
+
+                    {/* ACTIVE TOGGLE */}
                     <td className="py-4 px-4">
                       <button
                         onClick={() => toggleActive(s.id, s.active)}
@@ -268,29 +342,29 @@ export default function AdminStockPage() {
                         />
                       </button>
                     </td>
+
+                    {/* ACTIONS */}
                     <td className="py-4 px-4">
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={`/admin/stock/${s.id}/edit`}
-                          className="p-1.5 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors"
-                          title="Edit / Restock"
+                      <Link
+                        href={`/admin/stock/${s.id}/edit`}
+                        className="p-1.5 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors inline-flex"
+                        title="Edit / Restock"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
-                        </Link>
-                      </div>
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                      </Link>
                     </td>
                   </tr>
                 ))}

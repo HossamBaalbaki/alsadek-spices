@@ -179,12 +179,12 @@ export default function AdminStockPage() {
   // Poll every 60s (stock data doesn't need real-time updates)
   usePolling(() => fetchStocks(page, true), 60000);
 
-  // ─── CATEGORY TABS (counts come from server total, tabs built from categories) ─
+  // ─── CATEGORY TABS — counts from categories API ───────────────────────────
   const categoryTabs = useMemo(() => [
-    { id: "all", label: "All" },
-    { id: "none", label: "Uncategorized" },
-    ...categories.map((c) => ({ id: String(c.id), label: c.nameEn })),
-  ], [categories]);
+    { id: "all",  label: "All",           count: pagination.total },
+    { id: "none", label: "Uncategorized", count: null },
+    ...categories.map((c) => ({ id: String(c.id), label: c.nameEn, count: c.stockCount ?? null })),
+  ], [categories, pagination.total]);
 
   // ─── SELECTION ────────────────────────────────────────────────────────────
   const pageIds = useMemo(() => stocks.map((s) => s.id), [stocks]);
@@ -270,13 +270,20 @@ export default function AdminStockPage() {
             <button
               key={tab.id}
               onClick={() => setCategoryFilter(tab.id)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors flex items-center gap-1.5 ${
                 categoryFilter === tab.id
                   ? "bg-amber-700 text-white border-amber-700"
                   : "bg-white text-stone-600 border-stone-200 hover:border-stone-400"
               }`}
             >
               {tab.label}
+              {tab.count != null && (
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                  categoryFilter === tab.id ? "bg-white/20 text-white" : "bg-stone-100 text-stone-500"
+                }`}>
+                  {tab.count}
+                </span>
+              )}
             </button>
           ))}
         </div>

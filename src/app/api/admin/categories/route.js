@@ -9,13 +9,14 @@ export async function GET(request) {
     const categories = await prisma.category.findMany({
       orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
       include: {
-        _count: { select: { products: true } },
+        _count: { select: { products: true, stocks: true } },
       },
     });
 
     const formatted = categories.map((cat) => ({
       ...cat,
       productCount: cat._count.products,
+      stockCount: cat._count.stocks,
       _count: undefined,
     }));
 

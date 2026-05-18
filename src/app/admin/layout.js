@@ -8,10 +8,11 @@ export default function AdminLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const [admin, setAdmin] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false); // desktop icon-only mode
 
-  // Close sidebar on route change
-  useEffect(() => { setSidebarOpen(false); }, [pathname]);
+  // Close mobile sidebar on route change
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
 
   useEffect(() => {
     if (pathname === "/admin/login") return;
@@ -50,28 +51,21 @@ export default function AdminLayout({ children }) {
   return (
     <div className="min-h-screen bg-stone-100">
 
-      {/* ─── BACKDROP (shown when sidebar open) ─────────────────────────── */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40"
-          onClick={() => setSidebarOpen(false)}
-        />
+      {/* ─── MOBILE BACKDROP ─────────────────────────── */}
+      {mobileOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setMobileOpen(false)} />
       )}
 
-      {/* ─── SIDEBAR — fixed, never in document flow ─────────────────────────── */}
-      {/*
-        Width transitions between w-16 (icon-only) and w-64 (full).
-        Because it is position:fixed, this width change has ZERO effect on
-        the main content layout — no reflow, no flicker.
-      */}
+      {/* ─── SIDEBAR — fixed position, never causes reflow ─────────────────────────── */}
       <aside className={`
         fixed left-0 top-0 h-screen z-50 bg-stone-900 flex flex-col
         overflow-hidden transition-[width] duration-300 ease-in-out
-        ${sidebarOpen ? "w-64" : "w-0 lg:w-16"}
+        ${mobileOpen ? "w-64" : "w-0"}
+        ${collapsed ? "lg:w-16" : "lg:w-64"}
       `}>
 
         {/* Logo */}
-        <div className="p-4 border-b border-stone-700 flex items-center gap-3 flex-shrink-0 min-w-[16rem]">
+        <div className="flex items-center gap-3 p-4 border-b border-stone-700 flex-shrink-0 min-w-[16rem]">
           <span className="text-2xl flex-shrink-0">🌶️</span>
           <div className="overflow-hidden">
             <p className="text-white font-black text-sm whitespace-nowrap">Al Sadeq</p>
@@ -85,7 +79,7 @@ export default function AdminLayout({ children }) {
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => setSidebarOpen(false)}
+              onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all whitespace-nowrap ${
                 pathname.startsWith(item.href)
                   ? "bg-amber-700 text-white"
@@ -100,11 +94,11 @@ export default function AdminLayout({ children }) {
 
         {/* User + Logout — always pinned to bottom */}
         <div className="p-3 border-t border-stone-700 flex-shrink-0 min-w-[16rem]">
-          <div className="flex items-center gap-2 px-3 py-2 mb-2">
+          <div className="flex items-center gap-2 px-3 py-2 mb-2 overflow-hidden">
             <div className="w-8 h-8 rounded-full bg-amber-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
               {admin.name?.charAt(0) || "A"}
             </div>
-            <div className="min-w-0 overflow-hidden">
+            <div className="min-w-0">
               <p className="text-white text-xs font-semibold truncate whitespace-nowrap">{admin.name}</p>
               <p className="text-stone-400 text-xs truncate whitespace-nowrap">{admin.email}</p>
             </div>
@@ -121,18 +115,32 @@ export default function AdminLayout({ children }) {
 
       {/* ─── MAIN CONTENT ─────────────────────────── */}
       {/*
-        ml-0 on mobile (sidebar is fully hidden when closed).
-        lg:ml-16 on desktop (always offset by icon-rail width — NEVER CHANGES).
-        No transition here = no reflow = no flicker when sidebar toggles.
+        margin-left matches sidebar width and transitions together.
+        Fixed sidebar means only this element's margin reflows — not the
+        entire flex tree — so it's much lighter than the old sticky approach.
       */}
-      <div className="ml-0 lg:ml-16 flex flex-col min-h-screen">
+      <div className={`
+        flex flex-col min-h-screen transition-[margin-left] duration-300 ease-in-out
+        ml-0 ${collapsed ? "lg:ml-16" : "lg:ml-64"}
+      `}>
 
         {/* Top Bar */}
         <header className="bg-white border-b border-stone-200 px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-2 sm:gap-4">
+            {/* Mobile hamburger */}
             <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg hover:bg-stone-100 transition-colors"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="p-2 rounded-lg hover:bg-stone-100 transition-colors lg:hidden"
+              aria-label="Open menu"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            {/* Desktop collapse toggle */}
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="p-2 rounded-lg hover:bg-stone-100 transition-colors hidden lg:flex"
               aria-label="Toggle sidebar"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

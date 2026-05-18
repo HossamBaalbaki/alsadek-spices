@@ -606,7 +606,7 @@ export default function CheckoutPage() {
         style={{ bottom: "calc(var(--mobile-nav-height) + 0.5rem)" }}>
         <div className="bg-stone-900 text-white rounded-2xl px-5 py-3 flex items-center justify-between shadow-xl">
           <div className="flex items-center gap-2 text-sm text-stone-300">
-            <span>{cartCount} {isArabic ? "منتج" : "items"}</span>
+            <span>{cartItems.length} {isArabic ? "منتج" : "items"}</span>
             {deliveryFee === 0 && (
               <span className="text-green-400 text-xs font-semibold">· {isArabic ? "توصيل مجاني" : "Free delivery"}</span>
             )}

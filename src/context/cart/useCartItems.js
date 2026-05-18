@@ -24,15 +24,8 @@ export function useCartItems(showNotification) {
         ? `bundle-${product.id}`
         : `${product.id}-${variantLabel}`;
 
-    let maxQty = 9999;
-    if (product.type === "bundle") {
-      const bs = Number(product.bundleStock);
-      maxQty = Number.isFinite(bs) ? Math.max(0, bs) : 9999;
-    } else if (product.type === "single" && product.stock) {
-      const currentGrams = Number(product.stock.currentStockGrams) || 0;
-      const variantGrams = Number(selectedVariant?.grams) || 1;
-      maxQty = Math.floor(currentGrams / variantGrams);
-    }
+    const pcs = Number(product.currentStockPcs);
+    const maxQty = Number.isFinite(pcs) && pcs >= 0 ? pcs : 9999;
 
     const price =
       product.type === "bundle"
@@ -51,7 +44,7 @@ export function useCartItems(showNotification) {
         ...prev,
         {
           cartItemId,
-          productId: product.id,
+          stockId: product.id,
           nameEn: product.nameEn,
           nameAr: product.nameAr,
           image: product.images?.[0] || null,

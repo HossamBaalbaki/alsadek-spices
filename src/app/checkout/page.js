@@ -149,18 +149,13 @@ export default function CheckoutPage() {
       setStockCheckLoading(true);
       const outOfStock = [];
       for (const item of cartItems) {
-        const res = await fetch(`/api/products/id/${item.productId}`);
+        if (!item.slug) continue;
+        const res = await fetch(`/api/products/${item.slug}`);
         const data = await res.json();
         if (!data.success || !data.data) continue;
         const p = data.data;
-        if (p.type === "bundle") {
-          if ((Number(p.bundleStock) || 0) < item.quantity) outOfStock.push(isArabic ? item.nameAr : item.nameEn);
-        } else if (p.stock) {
-          const variant = Array.isArray(p.variants) ? p.variants.find((v) => v.weightLabel === item.weight) : null;
-          const grams = Number(item.grams) || Number(variant?.grams) || 0;
-          if (grams > 0 && Number(p.stock.currentStockGrams) < grams * item.quantity) {
-            outOfStock.push(isArabic ? item.nameAr : item.nameEn);
-          }
+        if (p.soldOut || Number(p.currentStockPcs) < item.quantity) {
+          outOfStock.push(isArabic ? item.nameAr : item.nameEn);
         }
       }
       setStockCheckLoading(false);
@@ -193,14 +188,13 @@ export default function CheckoutPage() {
           notes: formData.notes || null,
         },
         items: cartItems.map((item) => ({
-          productId: item.id || item.productId,
+          stockId: item.stockId,
           nameEn: item.nameEn,
           nameAr: item.nameAr,
           price: item.price,
           quantity: item.quantity,
           weight: item.weight || null,
           type: item.type || "single",
-          grams: item.grams || undefined,
         })),
         subtotal,
         deliveryFee,

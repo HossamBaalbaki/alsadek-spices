@@ -98,6 +98,14 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Sticky footer — main grows to fill available space between navbar and footer */
+main {
+  flex: 1;
 }
 
 /* ─── ARABIC FONT ─────────────────────────── */
@@ -1269,11 +1277,13 @@ select {
 
 /* ─── PAGE CONTENT ─────────────────────────── */
 .page-content {
+  padding-top: 1.5rem;
   padding-bottom: var(--page-bottom-mobile);
 }
 
 @media (min-width: 768px) {
   .page-content {
+    padding-top: 2rem;
     padding-bottom: var(--page-bottom-desktop);
   }
 }

@@ -278,7 +278,7 @@ export default function AboutPage() {
   return (
     <>
       <Navbar />
-      <main>
+      <main className="pb-20 md:pb-12">
 
         {/* ═══════════════════════════════════════════════
             HERO

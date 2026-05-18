@@ -75,7 +75,7 @@ export default function TrackOrderPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-gradient-to-b from-amber-50/40 to-stone-50">
+      <main className="min-h-screen bg-gradient-to-b from-amber-50/40 to-stone-50 pb-20 md:pb-12">
         {/* ─── HERO ─────────────────────────── */}
         <section className="relative overflow-hidden bg-gradient-to-br from-stone-900 via-stone-800 to-amber-900">
           <div className="absolute inset-0 opacity-10">

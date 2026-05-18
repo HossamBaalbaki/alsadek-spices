@@ -1,18 +1,21 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Tajawal } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { CartProvider } from "@/context/CartContext";
 import CartFlyAnimation from "@/components/ui/CartFlyAnimation";
 
 // ─── FONTS ───────────────────────────
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const tajawal = Tajawal({
+  variable: "--font-arabic",
+  subsets: ["arabic"],
+  weight: ["300", "400", "500", "700", "800", "900"],
+  display: "swap",
 });
 
 // ─── METADATA ───────────────────────────
@@ -31,9 +34,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" dir="ltr" data-scroll-behavior="smooth">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${inter.variable} ${tajawal.variable} antialiased`}>
         {/* Wrap everything with Language and Cart providers */}
         <LanguageProvider>
           <CartProvider>

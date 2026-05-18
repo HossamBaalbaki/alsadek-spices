@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useMemo } from "react";
 import { useCartUI } from "./cart/useCartUI";
 import { useCartItems } from "./cart/useCartItems";
 import { useCartPromo } from "./cart/useCartPromo";
@@ -31,36 +31,38 @@ export function CartProvider({ children }) {
 
   const grandTotal = subtotal + deliveryFee() - discountAmount();
 
+  const value = useMemo(() => ({
+    cartItems,
+    cartCount,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    promoCode,
+    promoError,
+    promoSuccess,
+    applyPromoCode,
+    removePromoCode,
+    selectedZone,
+    setSelectedZone,
+    deliveryZones: dynamicZones,
+    deliveryFee: deliveryFee(),
+    subtotal,
+    discountAmount: discountAmount(),
+    grandTotal,
+    amountToFreeDelivery,
+    freeDeliveryProgress,
+    FREE_DELIVERY_THRESHOLD,
+    notification,
+    showNotification,
+    flyEvents,
+    triggerFly,
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [cartItems, cartCount, subtotal, grandTotal, promoCode, promoError, promoSuccess,
+      selectedZone, dynamicZones, notification, flyEvents, amountToFreeDelivery, freeDeliveryProgress]);
+
   return (
-    <CartContext.Provider
-      value={{
-        cartItems,
-        cartCount,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        promoCode,
-        promoError,
-        promoSuccess,
-        applyPromoCode,
-        removePromoCode,
-        selectedZone,
-        setSelectedZone,
-        deliveryZones: dynamicZones,
-        deliveryFee: deliveryFee(),
-        subtotal,
-        discountAmount: discountAmount(),
-        grandTotal,
-        amountToFreeDelivery,
-        freeDeliveryProgress,
-        FREE_DELIVERY_THRESHOLD,
-        notification,
-        showNotification,
-        flyEvents,
-        triggerFly,
-      }}
-    >
+    <CartContext.Provider value={value}>
       {children}
     </CartContext.Provider>
   );

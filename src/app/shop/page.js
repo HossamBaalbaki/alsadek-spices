@@ -75,7 +75,13 @@ function ShopPage() {
           pageNums.map((pg) => fetch(`/api/products?${buildParams(pg)}`).then((r) => r.json()))
         );
         const allProducts = results.flatMap((d) => d.success ? applyClientFilters(d.data) : []);
-        setProducts(allProducts);
+        // Only update state if stock levels actually changed — prevents scroll stutter
+        setProducts((prev) => {
+          const changed = allProducts.some((p, i) =>
+            !prev[i] || prev[i].id !== p.id || prev[i].currentStockPcs !== p.currentStockPcs
+          );
+          return changed ? allProducts : prev;
+        });
         return;
       }
 

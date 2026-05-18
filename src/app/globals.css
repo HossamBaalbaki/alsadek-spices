@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -90,7 +88,7 @@ html {
 body {
   background-color: var(--color-bg);
   color: var(--color-text-primary);
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-sans), sans-serif;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -99,11 +97,11 @@ body {
 /* ─── ARABIC FONT ─────────────────────────── */
 [dir="rtl"] body,
 [lang="ar"] body {
-  font-family: "Tajawal", sans-serif;
+  font-family: var(--font-arabic), sans-serif;
 }
 
 [dir="rtl"] {
-  font-family: "Tajawal", sans-serif;
+  font-family: var(--font-arabic), sans-serif;
 }
 
 /* ─── SCROLLBAR ─────────────────────────── */
@@ -215,17 +213,32 @@ select {
 
 /* ─── PRODUCT CARD ─────────────────────────── */
 .product-card {
+  position: relative;
   background: white;
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  transition: transform var(--transition-normal);
   border: 1px solid var(--color-border);
 }
 
 .product-card:hover {
   transform: translateY(-4px);
+}
+
+.product-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  pointer-events: none;
+}
+
+.product-card:hover::after {
+  opacity: 1;
 }
 
 .product-card.sold-out {

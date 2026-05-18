@@ -43,7 +43,8 @@ export default function ImageUpload({ images = [], onChange, max = 5 }) {
       const data = await res.json();
       if (!data.secure_url) throw new Error(data.error?.message || "Upload failed");
 
-      onChange([...validImages, data.secure_url]);
+      const optimized = data.secure_url.replace("/upload/", "/upload/f_auto,q_auto,w_1200/");
+      onChange([...validImages, optimized]);
     } catch (err) {
       setError(err.message || "Upload failed. Try again.");
     } finally {

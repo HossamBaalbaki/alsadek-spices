@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState([]);
@@ -442,23 +443,13 @@ export default function AdminCategoriesPage() {
 
               <div>
                 <label className="block text-sm font-bold text-stone-700 mb-1">
-                  Image URL (optional)
+                  Category Image (optional)
                 </label>
-                <input
-                  type="text"
-                  value={form.image}
-                  onChange={(e) => handleChange("image", e.target.value)}
-                  placeholder="https://example.com/category.jpg"
-                  className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-400 text-sm"
+                <ImageUpload
+                  images={form.image ? [form.image] : []}
+                  onChange={(urls) => handleChange("image", urls[0] || "")}
+                  max={1}
                 />
-                {form.image && (
-                  <img
-                    src={form.image}
-                    alt="preview"
-                    className="mt-2 w-20 h-20 rounded-lg object-cover border border-stone-200"
-                    onError={(e) => (e.target.style.display = "none")}
-                  />
-                )}
               </div>
 
               <div className="flex items-center gap-3 justify-end pt-2 border-t border-stone-100">

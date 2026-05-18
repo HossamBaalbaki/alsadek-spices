@@ -24,7 +24,7 @@ export async function GET() {
 
     return NextResponse.json(
       { success: true, data: settings || DEFAULT_SETTINGS },
-      { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60" } }
+      { headers: { "Cache-Control": "no-store" } }
     );
   } catch (error) {
     console.error("GET /api/site-settings error:", error);

@@ -20,7 +20,6 @@ const tajawal = Tajawal({
 
 // ─── SITE URL ───────────────────────────
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://alsadek-spices.vercel.app";
-const OG_IMAGE = `${SITE_URL}/og-image.jpg`;
 
 // ─── METADATA ───────────────────────────
 export const metadata = {
@@ -59,14 +58,12 @@ export const metadata = {
     title: "Al Sadeq Spices — Premium Spices Delivered in Qatar",
     description:
       "Shop 100+ premium spices online. Saffron, cardamom, za'atar, and more — delivered fresh to your door in Doha, Qatar.",
-    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: "Al Sadeq Spices — Premium Spices in Qatar" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Al Sadeq Spices — Premium Spices Delivered in Qatar",
     description:
       "Shop 100+ premium spices online. Delivered fresh to your door in Doha, Qatar.",
-    images: [OG_IMAGE],
     creator: "@alsadeqspices",
   },
   alternates: {
@@ -129,7 +126,6 @@ const organizationSchema = {
       priceRange: "QAR 5–500",
       currenciesAccepted: "QAR",
       paymentAccepted: "Cash, Credit Card",
-      image: OG_IMAGE,
       servesCuisine: "Middle Eastern",
     },
     {

@@ -474,8 +474,7 @@ select {
 /* ─── CATEGORY CARD ─────────────────────────── */
 .category-card {
   position: relative;
-  border-radius: var
-  (--radius-xl);
+  border-radius: var(--radius-xl);
   overflow: hidden;
   cursor: pointer;
   aspect-ratio: 1;

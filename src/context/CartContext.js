@@ -6,8 +6,6 @@ import { useCartItems } from "./cart/useCartItems";
 import { useCartPromo } from "./cart/useCartPromo";
 import { useCartDelivery } from "./cart/useCartDelivery";
 
-export const deliveryZones = [];
-
 const CartContext = createContext();
 
 export function CartProvider({ children }) {

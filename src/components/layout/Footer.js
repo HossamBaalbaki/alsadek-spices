@@ -72,7 +72,7 @@ export default function Footer() {
   return (
     <footer className="bg-stone-900 text-stone-300">
       {/* ─── MAIN FOOTER ─────────────────────────── */}
-      <div className="container py-12">
+      <div className="container pt-16 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
 
           {/* ─── BRAND COLUMN ─────────────────────────── */}
@@ -296,7 +296,7 @@ export default function Footer() {
 
       {/* ─── BOTTOM BAR — payment + copyright merged ─────────────────────────── */}
       <div className="border-t border-stone-800">
-        <div className="container py-5">
+        <div className="container py-5 pb-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             {/* Powered by */}
             <p className="text-xs text-stone-600">

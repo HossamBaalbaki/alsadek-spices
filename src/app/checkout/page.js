@@ -258,7 +258,7 @@ export default function CheckoutPage() {
   return (
     <>
       <Navbar />
-      <main className="page-content">
+      <main className="page-content !pt-0">
 
         {/* Header */}
         <div className="bg-stone-900 py-8">

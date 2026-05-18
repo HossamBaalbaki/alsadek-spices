@@ -600,7 +600,7 @@ export default function CartPage() {
                 {isArabic ? "عرض الكل" : "View all"}
               </Link>
             </div>
-            <ProductGrid products={crossSell} loading={false} columns="default" />
+            <ProductGrid products={crossSell} loading={false} columns="three" />
           </div>
         )}
       </main>

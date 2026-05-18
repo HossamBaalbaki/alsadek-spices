@@ -9,17 +9,9 @@ export default function AdminLayout({ children }) {
   const router = useRouter();
   const [admin, setAdmin] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [desktopCollapsed, setDesktopCollapsed] = useState(false);
 
-  // Open sidebar by default on desktop
-  useEffect(() => {
-    if (window.innerWidth >= 1024) setSidebarOpen(true);
-  }, []);
-
-  // Close mobile sidebar on route change
-  useEffect(() => {
-    if (window.innerWidth < 1024) setSidebarOpen(false);
-  }, [pathname]);
+  // Close sidebar on route change
+  useEffect(() => { setSidebarOpen(false); }, [pathname]);
 
   useEffect(() => {
     if (pathname === "/admin/login") return;
@@ -55,120 +47,93 @@ export default function AdminLayout({ children }) {
     { href: "/admin/credentials",       icon: "🔐", label: "Credentials" },
   ];
 
-  const showLabel = sidebarOpen && !desktopCollapsed;
-
   return (
-    <div className="min-h-screen bg-stone-100 flex">
+    <div className="min-h-screen bg-stone-100">
 
-      {/* ─── MOBILE BACKDROP ─────────────────────────── */}
+      {/* ─── BACKDROP (shown when sidebar open) ─────────────────────────── */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/40 z-40"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* ─── SIDEBAR ─────────────────────────── */}
+      {/* ─── SIDEBAR — fixed, never in document flow ─────────────────────────── */}
+      {/*
+        Width transitions between w-16 (icon-only) and w-64 (full).
+        Because it is position:fixed, this width change has ZERO effect on
+        the main content layout — no reflow, no flicker.
+      */}
       <aside className={`
-        fixed inset-y-0 left-0 z-50 bg-stone-900 flex flex-col transition-all duration-300
-        lg:sticky lg:top-0 lg:h-screen lg:z-auto
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-        ${desktopCollapsed ? "lg:w-16" : "lg:w-64"}
-        w-64
+        fixed left-0 top-0 h-screen z-50 bg-stone-900 flex flex-col
+        overflow-hidden transition-[width] duration-300 ease-in-out
+        ${sidebarOpen ? "w-64" : "w-0 lg:w-16"}
       `}>
 
         {/* Logo */}
-        <div className="p-4 border-b border-stone-700 flex items-center gap-3 flex-shrink-0">
+        <div className="p-4 border-b border-stone-700 flex items-center gap-3 flex-shrink-0 min-w-[16rem]">
           <span className="text-2xl flex-shrink-0">🌶️</span>
-          {!desktopCollapsed && (
-            <div className="lg:block hidden">
-              <p className="text-white font-black text-sm">Al Sadeq</p>
-              <p className="text-stone-400 text-xs">Admin Panel</p>
-            </div>
-          )}
-          {/* Always show on mobile */}
-          <div className="lg:hidden">
-            <p className="text-white font-black text-sm">Al Sadeq</p>
-            <p className="text-stone-400 text-xs">Admin Panel</p>
+          <div className="overflow-hidden">
+            <p className="text-white font-black text-sm whitespace-nowrap">Al Sadeq</p>
+            <p className="text-stone-400 text-xs whitespace-nowrap">Admin Panel</p>
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 p-3 flex flex-col gap-1 overflow-y-auto">
+        <nav className="flex-1 p-3 flex flex-col gap-1 overflow-y-auto overflow-x-hidden min-w-[16rem]">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false); }}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+              onClick={() => setSidebarOpen(false)}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all whitespace-nowrap ${
                 pathname.startsWith(item.href)
                   ? "bg-amber-700 text-white"
                   : "text-stone-400 hover:bg-stone-800 hover:text-white"
               }`}
             >
               <span className="text-lg flex-shrink-0">{item.icon}</span>
-              {/* Label: always on mobile, only when not collapsed on desktop */}
-              <span className={`font-semibold text-sm ${desktopCollapsed ? "lg:hidden" : ""}`}>
-                {item.label}
-              </span>
+              <span className="font-semibold text-sm">{item.label}</span>
             </Link>
           ))}
         </nav>
 
-        {/* User + Logout */}
-        <div className="p-3 border-t border-stone-700 flex-shrink-0">
-          {!desktopCollapsed && (
-            <div className="lg:flex hidden items-center gap-2 px-3 py-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-amber-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                {admin.name?.charAt(0) || "A"}
-              </div>
-              <div className="min-w-0">
-                <p className="text-white text-xs font-semibold truncate">{admin.name}</p>
-                <p className="text-stone-400 text-xs truncate">{admin.email}</p>
-              </div>
-            </div>
-          )}
-          {/* Always show on mobile */}
-          <div className="lg:hidden flex items-center gap-2 px-3 py-2 mb-2">
+        {/* User + Logout — always pinned to bottom */}
+        <div className="p-3 border-t border-stone-700 flex-shrink-0 min-w-[16rem]">
+          <div className="flex items-center gap-2 px-3 py-2 mb-2">
             <div className="w-8 h-8 rounded-full bg-amber-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
               {admin.name?.charAt(0) || "A"}
             </div>
-            <div className="min-w-0">
-              <p className="text-white text-xs font-semibold truncate">{admin.name}</p>
-              <p className="text-stone-400 text-xs truncate">{admin.email}</p>
+            <div className="min-w-0 overflow-hidden">
+              <p className="text-white text-xs font-semibold truncate whitespace-nowrap">{admin.name}</p>
+              <p className="text-stone-400 text-xs truncate whitespace-nowrap">{admin.email}</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2 rounded-xl text-stone-400 hover:bg-stone-800 hover:text-red-400 transition-all w-full"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl text-stone-400 hover:bg-stone-800 hover:text-red-400 transition-all w-full whitespace-nowrap"
           >
             <span className="text-lg flex-shrink-0">🚪</span>
-            <span className={`font-semibold text-sm ${desktopCollapsed ? "lg:hidden" : ""}`}>
-              Logout
-            </span>
+            <span className="font-semibold text-sm">Logout</span>
           </button>
         </div>
       </aside>
 
       {/* ─── MAIN CONTENT ─────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/*
+        ml-0 on mobile (sidebar is fully hidden when closed).
+        lg:ml-16 on desktop (always offset by icon-rail width — NEVER CHANGES).
+        No transition here = no reflow = no flicker when sidebar toggles.
+      */}
+      <div className="ml-0 lg:ml-16 flex flex-col min-h-screen">
 
         {/* Top Bar */}
         <header className="bg-white border-b border-stone-200 px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-2 sm:gap-4">
-            {/* Mobile: hamburger to open overlay sidebar */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg hover:bg-stone-100 transition-colors lg:hidden"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            {/* Desktop: collapse/expand sidebar */}
-            <button
-              onClick={() => setDesktopCollapsed(!desktopCollapsed)}
-              className="p-2 rounded-lg hover:bg-stone-100 transition-colors hidden lg:flex"
+              className="p-2 rounded-lg hover:bg-stone-100 transition-colors"
+              aria-label="Toggle sidebar"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -193,7 +158,7 @@ export default function AdminLayout({ children }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-3 sm:p-6 overflow-auto">
+        <main className="flex-1 p-3 sm:p-6">
           {children}
         </main>
       </div>

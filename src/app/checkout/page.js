@@ -260,36 +260,30 @@ export default function CheckoutPage() {
       <Navbar />
       <main className="page-content !pt-0">
 
-        {/* Header */}
-        <div className="bg-stone-900 py-8">
+        {/* Header + Steps */}
+        <div className="bg-stone-900 py-8 pb-6">
           <div className="container">
             <div className="breadcrumb mb-4">
               <Link href="/" className="text-stone-400 hover:text-amber-400">{t.nav.home}</Link>
               <span className="breadcrumb-separator text-stone-600">›</span>
               <span className="text-stone-300">{isArabic ? "إتمام الطلب" : "Checkout"}</span>
             </div>
-            <h1 className="text-2xl font-black text-white">
+            <h1 className="text-2xl font-black text-white mb-6">
               {isArabic ? "إتمام الطلب" : "Checkout"}
             </h1>
-          </div>
-        </div>
-
-        {/* Steps */}
-        <div className="bg-white border-b border-stone-200">
-          <div className="container py-4">
             <div className="flex items-center justify-center gap-0">
               {steps.map((step, index) => (
                 <div key={step.number} className="flex items-center">
                   <div className="flex flex-col items-center">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm transition-all ${currentStep > step.number ? "bg-green-500 text-white" : currentStep === step.number ? "bg-amber-700 text-white" : "bg-stone-200 text-stone-500"}`}>
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm transition-all ${currentStep > step.number ? "bg-green-500 text-white" : currentStep === step.number ? "bg-amber-700 text-white" : "bg-stone-700 text-stone-400"}`}>
                       {currentStep > step.number ? "✓" : step.number}
                     </div>
-                    <span className={`text-xs mt-1 font-medium hidden sm:block ${currentStep === step.number ? "text-amber-700" : "text-stone-400"}`}>
+                    <span className={`text-xs mt-1 font-medium hidden sm:block ${currentStep === step.number ? "text-amber-400" : "text-stone-500"}`}>
                       {isArabic ? step.titleAr : step.titleEn}
                     </span>
                   </div>
                   {index < steps.length - 1 && (
-                    <div className={`h-0.5 w-16 sm:w-24 mx-2 transition-all ${currentStep > step.number ? "bg-green-500" : "bg-stone-200"}`} />
+                    <div className={`h-0.5 w-16 sm:w-24 mx-2 transition-all ${currentStep > step.number ? "bg-green-500" : "bg-stone-700"}`} />
                   )}
                 </div>
               ))}

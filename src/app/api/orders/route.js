@@ -145,11 +145,51 @@ export async function POST(request) {
       }
     }
 
-    // Pre-validate products + build deduction metadata (without touching stock yet)
-    const singleDeductions = []; // { stockId, grams, nameEn }
-    const bundleDeductions = []; // { productId, quantity, nameEn }
+    // Pre-validate items + build deduction metadata
+    // Supports both new (stockId-based, pcs) and legacy (productId-based, grams) items.
+    const singleDeductions = []; // { stockId, grams, nameEn } — legacy gram-based
+    const bundleDeductions = []; // { productId, quantity, nameEn } — legacy bundle
+    const pcsDeductions = [];   // { stockId, quantity, nameEn } — new pcs-based
 
     for (const item of items) {
+      const qty = Number(item.quantity) || 1;
+
+      // ─── NEW PATH: item carries stockId directly ───────────────────────────
+      if (item.stockId && typeof item.stockId === "number") {
+        const stock = await prisma.stock.findUnique({ where: { id: item.stockId } });
+        if (!stock) {
+          return NextResponse.json(
+            { success: false, message: `Item not found: ${sanitizeStr(item.nameEn || String(item.stockId))}` },
+            { status: 400 }
+          );
+        }
+        if (stock.currentStockPcs < qty) {
+          return NextResponse.json(
+            { success: false, message: `Insufficient stock for: ${stock.nameEn}` },
+            { status: 409 }
+          );
+        }
+        pcsDeductions.push({ stockId: stock.id, quantity: qty, nameEn: stock.nameEn });
+        continue;
+      }
+
+      // ─── LEGACY PATH: item carries productId ──────────────────────────────
+      // First check if productId actually maps to a Stock (post-migration items from shop)
+      const stockById = item.productId
+        ? await prisma.stock.findUnique({ where: { id: item.productId } })
+        : null;
+
+      if (stockById) {
+        if (stockById.currentStockPcs < qty) {
+          return NextResponse.json(
+            { success: false, message: `Insufficient stock for: ${stockById.nameEn}` },
+            { status: 409 }
+          );
+        }
+        pcsDeductions.push({ stockId: stockById.id, quantity: qty, nameEn: stockById.nameEn });
+        continue;
+      }
+
       if (!item.productId || typeof item.productId !== "number") {
         return NextResponse.json({ success: false, message: "Invalid item in order" }, { status: 400 });
       }
@@ -181,9 +221,7 @@ export async function POST(request) {
 
         if (!unitGrams || unitGrams <= 0) {
           const variantList = Array.isArray(product.variants) ? product.variants : [];
-          if (variantList.length > 0) {
-            unitGrams = Number(variantList[0]?.grams || 0);
-          }
+          if (variantList.length > 0) unitGrams = Number(variantList[0]?.grams || 0);
         }
 
         if (!unitGrams || unitGrams <= 0) {
@@ -193,27 +231,22 @@ export async function POST(request) {
           );
         }
 
-        const neededGrams = unitGrams * (Number(item.quantity) || 1);
-        // Early stock check (for fast UX feedback); race condition is fixed atomically inside the transaction
+        const neededGrams = unitGrams * qty;
         if (Number(product.stock.currentStockGrams) < neededGrams) {
           return NextResponse.json(
             { success: false, message: `Insufficient stock for: ${product.nameEn}` },
             { status: 409 }
           );
         }
-
         singleDeductions.push({ stockId: product.stock.id, grams: neededGrams, unitGrams, nameEn: product.nameEn });
       } else if (product.type === "bundle") {
-        const qty = Number(item.quantity) || 1;
         const available = Number(product.bundleStock) || 0;
-
         if (available < qty) {
           return NextResponse.json(
             { success: false, message: `Insufficient finished stock for: ${product.nameEn}` },
             { status: 409 }
           );
         }
-
         bundleDeductions.push({ productId: product.id, quantity: qty, nameEn: product.nameEn });
       }
     }
@@ -236,6 +269,16 @@ export async function POST(request) {
         const result = await tx.product.updateMany({
           where: { id: d.productId, bundleStock: { gte: d.quantity } },
           data: { bundleStock: { decrement: d.quantity } },
+        });
+        if (result.count === 0) {
+          throw new Error(`STOCK_INSUFFICIENT:${d.nameEn}`);
+        }
+      }
+
+      for (const d of pcsDeductions) {
+        const result = await tx.stock.updateMany({
+          where: { id: d.stockId, currentStockPcs: { gte: d.quantity } },
+          data: { currentStockPcs: { decrement: d.quantity } },
         });
         if (result.count === 0) {
           throw new Error(`STOCK_INSUFFICIENT:${d.nameEn}`);
@@ -322,8 +365,16 @@ export async function POST(request) {
                 }
               }
 
+              // Resolve stockId: explicit stockId takes priority, then check pcsDeductions
+              // to find if this item's productId was resolved to a Stock entry.
+              const resolvedStockId =
+                item.stockId ||
+                pcsDeductions.find((d) => d.stockId === item.productId)?.stockId ||
+                null;
+
               const row = {
-                productId:     item.productId,
+                productId:     resolvedStockId ? null : (item.productId || null),
+                stockId:       resolvedStockId || null,
                 nameEn:        sanitizeStr(item.nameEn || ""),
                 nameAr:        sanitizeStr(item.nameAr || ""),
                 price:         Number(item.price)    || 0,

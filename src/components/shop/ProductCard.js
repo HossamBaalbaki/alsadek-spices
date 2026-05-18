@@ -10,7 +10,7 @@ import { AddToCartButton, NotifyMeButton } from "@/components/ui/Button";
 import { isSoldOut } from "@/data/products";
 
 const getVariantLabel = (variant) =>
-  variant?.weightLabel || variant?.weight || `${variant?.grams || 0}g`;
+  variant?.label || variant?.weightLabel || variant?.weight || `${variant?.grams || 0}g`;
 
 const getVariantPrice = (variant) => {
   const n = Number(variant?.price);
@@ -37,7 +37,12 @@ export default function ProductCard({ product, rank, priority = false }) {
   const { addToCart, triggerFly } = useCart();
 
   const safeVariants = Array.isArray(product?.variants) ? product.variants : [];
-  const safeBundleItems = Array.isArray(product?.bundleItems) ? product.bundleItems : [];
+  // support both old bundleItems and new bundleContents field name
+  const safeBundleItems = Array.isArray(product?.bundleContents)
+    ? product.bundleContents
+    : Array.isArray(product?.bundleItems)
+    ? product.bundleItems
+    : [];
   const safeLabels = product?.labels || {
     isNew: false, isHot: false, isSale: false, salePercent: 0, isLimited: false,
   };

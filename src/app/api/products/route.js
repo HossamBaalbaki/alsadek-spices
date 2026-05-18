@@ -1,14 +1,32 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { enrichSingleVariants } from "@/lib/stock";
 
-function firstPrice(product) {
-  if (product.type === "bundle") return Number(product.price || 0);
-  const arr = Array.isArray(product.variants) ? product.variants : [];
-  return Number(arr[0]?.price || 0);
+function firstPrice(stock) {
+  if (stock.type === "bundle") return Number(stock.price || 0);
+  const variants = Array.isArray(stock.variants) ? stock.variants : [];
+  return Number(variants[0]?.price || 0);
 }
 
-// ─── GET ALL PRODUCTS ───────────────────────────
+function applyStockSale(stock) {
+  const labels = stock.labels || {};
+  const salePct = labels.isSale && Number(labels.salePercent) > 0 ? Number(labels.salePercent) : 0;
+  if (!salePct || stock.type !== "single") return stock;
+
+  const variants = Array.isArray(stock.variants) ? stock.variants : [];
+  return {
+    ...stock,
+    variants: variants.map((v) => {
+      const base = Number(v.price) || 0;
+      return {
+        ...v,
+        price: Math.round(base * (1 - salePct / 100) * 100) / 100,
+        originalPrice: base,
+      };
+    }),
+  };
+}
+
+// ─── GET ALL PRODUCTS (reads from Stock) ───────────────────────────
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -22,10 +40,8 @@ export async function GET(request) {
     const limit = parseInt(searchParams.get("limit") || "12");
     const skip = (page - 1) * limit;
 
-    const where = { active: true };
-
+    const where = { active: true, slug: { not: null } };
     if (category && category !== "all") where.category = { slug: category };
-
     if (search) {
       where.OR = [
         { nameEn: { contains: search, mode: "insensitive" } },
@@ -33,70 +49,45 @@ export async function GET(request) {
         { descriptionEn: { contains: search, mode: "insensitive" } },
       ];
     }
-
     if (featured === "true") where.featured = true;
     if (bestSeller === "true") where.bestSeller = true;
 
-    const dbSort = sort === "price-low-high" || sort === "price-high-low"
-      ? { createdAt: "desc" }
-      : sort === "best-selling"
-      ? { reviewCount: "desc" }
-      : sort === "rating"
-      ? { rating: "desc" }
+    const dbSort =
+      sort === "best-selling" ? { reviewCount: "desc" }
+      : sort === "rating" ? { rating: "desc" }
       : { createdAt: "desc" };
 
-    const [rawProducts, total] = await Promise.all([
-      prisma.product.findMany({
+    const [rawStocks, total] = await Promise.all([
+      prisma.stock.findMany({
         where,
         orderBy: dbSort,
         skip,
         take: limit,
         include: {
-          stock: true,
-          category: {
-            select: { id: true, slug: true, nameEn: true, nameAr: true },
+          category: { select: { id: true, slug: true, nameEn: true, nameAr: true } },
+          bundleContents: {
+            include: { stock: { select: { id: true, nameEn: true, nameAr: true } } },
           },
         },
       }),
-      prisma.product.count({ where }),
+      prisma.stock.count({ where }),
     ]);
 
-    const products = rawProducts.map((p) => {
-      if (p.type === "single") {
-        const enriched = enrichSingleVariants(p);
-        return {
-          ...p,
-          variants: enriched,
-          price: Number(enriched[0]?.price || 0),
-          soldOut: (Number(p.stock?.currentStockGrams) || 0) <= 0,
-        };
-      }
-      return {
-        ...p,
-        price: Number(p.price || 0),
-        soldOut: (Number(p.bundleStock) || 0) <= 0,
-      };
-    });
+    let stocks = rawStocks.map((s) => ({
+      ...applyStockSale(s),
+      soldOut: s.currentStockPcs <= 0,
+      price: firstPrice(s),
+    }));
 
-    if (sort === "price-low-high") {
-      products.sort((a, b) => firstPrice(a) - firstPrice(b));
-    } else if (sort === "price-high-low") {
-      products.sort((a, b) => firstPrice(b) - firstPrice(a));
-    }
+    if (sort === "price-low-high") stocks.sort((a, b) => firstPrice(a) - firstPrice(b));
+    if (sort === "price-high-low") stocks.sort((a, b) => firstPrice(b) - firstPrice(a));
 
     return NextResponse.json(
-      {
-        success: true,
-        data: products,
-        pagination: { page, limit, total, pages: Math.ceil(total / limit) },
-      },
+      { success: true, data: stocks, pagination: { page, limit, total, pages: Math.ceil(total / limit) } },
       { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" } }
     );
   } catch (error) {
     console.error("GET /api/products error:", error);
-    return NextResponse.json(
-      { success: false, message: "Failed to fetch products" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "Failed to fetch products" }, { status: 500 });
   }
 }

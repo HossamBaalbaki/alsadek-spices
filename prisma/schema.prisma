@@ -27,10 +27,10 @@ model Category {
   @@map("categories")
 }
 
-// ─── STOCK (admin-only inventory) ───────────────────────────
-// All weights stored in grams internally.
+// ─── STOCK (unified inventory + shop item) ───────────────────────────
 model Stock {
   id                     Int            @id @default(autoincrement())
+  slug                   String?        @unique
   nameEn                 String
   nameAr                 String
   descriptionEn          String?
@@ -38,17 +38,32 @@ model Stock {
   images                 String[]
   categoryId             Int?
   category               Category?      @relation(fields: [categoryId], references: [id])
+  type                   String         @default("single") // "single" | "bundle"
 
-  // Latest purchase unit (for display only)
-  purchaseUnit           String         // "gram" | "kilogram" | "ton"
-  purchaseQuantity       Float          // quantity of the most recent purchase in `purchaseUnit`
-  purchasePrice          Float          // total cost paid for the most recent purchase (in QAR)
-
-  // Aggregates (grams + cost per gram weighted average)
+  // ─── Legacy purchase fields (kept for historical data) ───
+  purchaseUnit           String         @default("gram")
+  purchaseQuantity       Float          @default(0)
+  purchasePrice          Float          @default(0)
   costPerGram            Float          @default(0)
   currentStockGrams      Float          @default(0)
   totalStockGrams        Float          @default(0)
   lowStockThresholdGrams Float          @default(500)
+
+  // ─── Piece-based inventory ───
+  currentStockPcs        Int            @default(0)
+  lowStockThresholdPcs   Int            @default(5)
+
+  // ─── Pricing (bundles set a fixed sell price) ───
+  price                  Float?
+  originalPrice          Float?
+
+  // ─── Shop / product fields ───
+  variants               Json?          // [{ label, grams, price }]
+  labels                 Json?          // { isNew, isHot, isSale, salePercent, isLimited }
+  rating                 Float          @default(0)
+  reviewCount            Int            @default(0)
+  featured               Boolean        @default(false)
+  bestSeller             Boolean        @default(false)
 
   active                 Boolean        @default(true)
   createdAt              DateTime       @default(now())
@@ -56,9 +71,16 @@ model Stock {
 
   restocks               StockRestock[]
   products               Product[]
-  bundleItems            BundleItem[]
+  bundleContents         BundleItem[]   @relation("BundleContents")
+  inBundles              BundleItem[]   @relation("BundleIngredients")
+  orderItems             OrderItem[]
+  reviews                Review[]
   pricingRule            PricingRule?
 
+  @@index([categoryId, active])
+  @@index([featured, active])
+  @@index([bestSeller, active])
+  @@index([active, createdAt])
   @@map("stocks")
 }
 
@@ -76,10 +98,14 @@ model StockRestock {
   id            Int      @id @default(autoincrement())
   stockId       Int
   stock         Stock    @relation(fields: [stockId], references: [id], onDelete: Cascade)
-  addedGrams    Float
-  purchasePrice Float
-  purchaseUnit  String
-  purchaseQty   Float
+  // Legacy gram fields (kept for historical records)
+  addedGrams    Float    @default(0)
+  purchasePrice Float    @default(0)
+  purchaseUnit  String   @default("gram")
+  purchaseQty   Float    @default(0)
+  // New pcs-based restock
+  addedPcs      Int      @default(0)
+  notes         String?
   createdAt     DateTime @default(now())
 
   @@map("stock_restocks")
@@ -131,14 +157,19 @@ model Product {
   @@map("products")
 }
 
-// For bundle products: which stock items + how many grams each unit bundle contains
 model BundleItem {
-  id           Int     @id @default(autoincrement())
-  productId    Int
-  product      Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  stockId      Int
-  stock        Stock   @relation(fields: [stockId], references: [id])
-  gramsPerUnit Float
+  id            Int      @id @default(autoincrement())
+  // Legacy: bundle Product (kept during migration)
+  productId     Int?
+  product       Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  // New: the bundle is now a Stock entry
+  bundleStockId Int?
+  bundleStock   Stock?   @relation("BundleContents", fields: [bundleStockId], references: [id], onDelete: Cascade)
+  // Ingredient stock item (unchanged)
+  stockId       Int
+  stock         Stock    @relation("BundleIngredients", fields: [stockId], references: [id])
+  gramsPerUnit  Float    @default(0)
+  quantity      Int      @default(1)
 
   @@map("bundle_items")
 }
@@ -190,29 +221,36 @@ model Order {
 }
 
 model OrderItem {
-  id             Int     @id @default(autoincrement())
-  orderId        Int
-  order          Order   @relation(fields: [orderId], references: [id])
-  productId      Int
-  product        Product @relation(fields: [productId], references: [id])
-  nameEn         String
-  nameAr         String
-  price          Float
-  quantity       Int
-  weight         String?
-  grams          Float?  // grams per single unit of this line (for single: variant grams; for bundle: sum of bundle items grams)
-  gramsDeducted  Float?  // total grams deducted from stock for this line (grams * quantity) — for single items
-  // For bundle items, stock deduction is tracked per-stock in a JSON blob
-  bundleBreakdown Json?  // [{ stockId, gramsPerUnit, gramsDeducted }]
-  type           String  @default("single")
+  id              Int      @id @default(autoincrement())
+  orderId         Int
+  order           Order    @relation(fields: [orderId], references: [id])
+  // Legacy product reference (kept for old orders)
+  productId       Int?
+  product         Product? @relation(fields: [productId], references: [id])
+  // New stock reference (used for new orders)
+  stockId         Int?
+  stock           Stock?   @relation(fields: [stockId], references: [id])
+  nameEn          String
+  nameAr          String
+  price           Float
+  quantity        Int
+  weight          String?
+  grams           Float?
+  gramsDeducted   Float?
+  bundleBreakdown Json?
+  type            String   @default("single")
 
   @@map("order_items")
 }
 
 model Review {
   id        Int      @id @default(autoincrement())
-  productId Int
-  product   Product  @relation(fields: [productId], references: [id])
+  // Legacy product reference (kept for old reviews)
+  productId Int?
+  product   Product? @relation(fields: [productId], references: [id])
+  // New stock reference
+  stockId   Int?
+  stock     Stock?   @relation(fields: [stockId], references: [id])
   name      String
   rating    Int
   text      String?

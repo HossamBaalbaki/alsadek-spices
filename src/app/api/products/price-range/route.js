@@ -4,18 +4,18 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     const [bundleMax, singlePrices] = await Promise.all([
-      prisma.product.aggregate({
-        where: { active: true, type: "bundle" },
+      prisma.stock.aggregate({
+        where: { active: true, type: "bundle", slug: { not: null } },
         _max: { price: true },
       }),
-      // Raw query to extract max price from variants JSON array for single products
       prisma.$queryRaw`
         SELECT MAX(CAST(elem->>'price' AS FLOAT)) AS max_price
-        FROM products,
+        FROM stocks,
              jsonb_array_elements(variants::jsonb) AS elem
         WHERE active = true
           AND type = 'single'
           AND variants IS NOT NULL
+          AND slug IS NOT NULL
       `,
     ]);
 

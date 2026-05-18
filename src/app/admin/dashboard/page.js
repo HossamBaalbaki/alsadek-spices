@@ -300,7 +300,7 @@ export default function AdminDashboard() {
                 label="Active Products"
                 value={data?.products?.total ?? 0}
                 colorClass="bg-white border-stone-200"
-                href="/admin/products"
+                href="/admin/stock"
               />
             </div>
           </div>
@@ -511,7 +511,7 @@ export default function AdminDashboard() {
               {[
                 { label: "All Orders", icon: "📦", href: "/admin/orders" },
                 { label: "Pending Orders", icon: "⏳", href: "/admin/orders?status=pending" },
-                { label: "Add Product", icon: "➕", href: "/admin/products/new" },
+                { label: "Add Stock Item", icon: "➕", href: "/admin/stock/new" },
                 { label: "View Customers", icon: "👥", href: "/admin/customers" },
                 { label: "Stock Management", icon: "📦", href: "/admin/stock" },
                 { label: "Delivery Settings", icon: "🚚", href: "/admin/delivery-settings" },

@@ -395,9 +395,8 @@ export default function AdminDashboard() {
               </div>
               <div className="flex flex-col gap-3">
                 {data.lowStock.map((s) => {
-                  const isEmpty = s.currentStockGrams === 0;
-                  const grams = s.currentStockGrams;
-                  const display = grams >= 1000 ? `${(grams / 1000).toFixed(2)} kg` : `${grams.toFixed(0)} g`;
+                  const isEmpty = s.currentStockPcs === 0;
+                  const display = `${s.currentStockPcs} pcs`;
                   return (
                     <div key={s.id} className="flex items-center gap-3">
                       <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isEmpty ? "bg-red-500" : "bg-orange-400"}`} />

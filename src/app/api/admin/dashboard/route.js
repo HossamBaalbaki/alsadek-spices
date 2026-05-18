@@ -169,16 +169,16 @@ export async function GET(request) {
         prisma.stock.findMany({
           where: {
             active: true,
-            lowStockThresholdGrams: { gt: 0 },
+            lowStockThresholdPcs: { gt: 0 },
           },
           select: {
             id: true,
             nameEn: true,
             nameAr: true,
-            currentStockGrams: true,
-            lowStockThresholdGrams: true,
+            currentStockPcs: true,
+            lowStockThresholdPcs: true,
           },
-          orderBy: { currentStockGrams: "asc" },
+          orderBy: { currentStockPcs: "asc" },
         }),
       ]);
 
@@ -217,17 +217,17 @@ export async function GET(request) {
 
     const trend = (curr, prev) => prev === 0 ? (curr > 0 ? 100 : 0) : Math.round(((curr - prev) / prev) * 100);
 
-    // Filter low stock in JS: currentStockGrams <= lowStockThresholdGrams
+    // Filter low stock in JS: currentStockPcs <= lowStockThresholdPcs
     const lowStock = lowStockItems
-      .filter((s) => Number(s.currentStockGrams) <= Number(s.lowStockThresholdGrams))
+      .filter((s) => Number(s.currentStockPcs) <= Number(s.lowStockThresholdPcs))
       .map((s) => ({
         id: s.id,
         nameEn: s.nameEn,
         nameAr: s.nameAr,
-        currentStockGrams: Number(s.currentStockGrams),
-        lowStockThreshold: Number(s.lowStockThresholdGrams),
-        pct: Number(s.lowStockThresholdGrams) > 0
-          ? Math.round((Number(s.currentStockGrams) / Number(s.lowStockThresholdGrams)) * 100)
+        currentStockPcs: Number(s.currentStockPcs),
+        lowStockThreshold: Number(s.lowStockThresholdPcs),
+        pct: Number(s.lowStockThresholdPcs) > 0
+          ? Math.round((Number(s.currentStockPcs) / Number(s.lowStockThresholdPcs)) * 100)
           : 0,
       }));
 

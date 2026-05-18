@@ -249,6 +249,19 @@ export default function AdminStockPage() {
     [stocks]
   );
 
+  // ─── PAGINATION ───────────────────────────────────────────────────────────
+  const PAGE_SIZE = 25;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => { setCurrentPage(1); }, [search, typeFilter, categoryFilter, lowOnly]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = useMemo(
+    () => filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filtered, currentPage]
+  );
+
   const allFilteredIds = useMemo(() => filtered.map((s) => s.id), [filtered]);
 
   const categoryTabs = useMemo(() => [
@@ -463,7 +476,7 @@ export default function AdminStockPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
-                {filtered.map((s) => (
+                {paginated.map((s) => (
                   <StockRow
                     key={s.id}
                     s={s}
@@ -478,6 +491,55 @@ export default function AdminStockPage() {
           </div>
         )}
       </div>
+
+      {/* PAGINATION */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between bg-white rounded-2xl border border-stone-200 px-5 py-3">
+          <p className="text-xs text-stone-500">
+            Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length}
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-stone-200 text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              ← Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+              .reduce((acc, p, idx, arr) => {
+                if (idx > 0 && arr[idx - 1] !== p - 1) acc.push("…");
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((p, i) =>
+                p === "…" ? (
+                  <span key={`ellipsis-${i}`} className="px-2 text-stone-400 text-xs">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setCurrentPage(p)}
+                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
+                      currentPage === p
+                        ? "bg-amber-700 text-white"
+                        : "text-stone-600 hover:bg-stone-100"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-stone-200 text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* DELETE CONFIRMATION MODAL */}
       {confirmDelete && (

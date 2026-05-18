@@ -52,6 +52,7 @@ export default function AdminLayout({ children }) {
     { href: "/admin/customers",         icon: "👥", label: "Customers" },
     { href: "/admin/promo-codes",       icon: "🎟️", label: "Promo Codes" },
     { href: "/admin/reports",           icon: "📈", label: "Reports" },
+    { href: "/admin/credentials",       icon: "🔐", label: "Credentials" },
   ];
 
   const showLabel = sidebarOpen && !desktopCollapsed;
@@ -70,7 +71,7 @@ export default function AdminLayout({ children }) {
       {/* ─── SIDEBAR ─────────────────────────── */}
       <aside className={`
         fixed inset-y-0 left-0 z-50 bg-stone-900 flex flex-col transition-all duration-300
-        lg:static lg:z-auto
+        lg:sticky lg:top-0 lg:h-screen lg:z-auto
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         ${desktopCollapsed ? "lg:w-16" : "lg:w-64"}
         w-64

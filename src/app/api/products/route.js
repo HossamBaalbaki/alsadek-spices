@@ -71,9 +71,6 @@ export async function GET(request) {
         take: limit,
         include: {
           category: { select: { id: true, slug: true, nameEn: true, nameAr: true } },
-          bundleContents: {
-            include: { stock: { select: { id: true, nameEn: true, nameAr: true } } },
-          },
         },
       }),
       prisma.stock.count({ where }),
@@ -94,6 +91,6 @@ export async function GET(request) {
     );
   } catch (error) {
     console.error("GET /api/products error:", error);
-    return NextResponse.json({ success: false, message: "Failed to fetch products" }, { status: 500 });
+    return NextResponse.json({ success: false, message: error?.message || "Failed to fetch products" }, { status: 500 });
   }
 }

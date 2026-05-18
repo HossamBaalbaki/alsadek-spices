@@ -396,7 +396,7 @@ export default function HomePage() {
                 {isArabic ? "لماذا نحن" : "Why us"}
               </p>
               <h2 className="text-4xl font-black text-white">
-                {isArabic ? "لماذا تختار السادق؟" : "Why Choose Al Sadek?"}
+                {isArabic ? "لماذا تختار السادق؟" : "Why Choose Al Sadeq?"}
               </h2>
             </div>
 

@@ -151,7 +151,7 @@ export default function HeroBanner() {
 
                 {/* Title */}
                 <h2 className="text-2xl font-black text-white mb-2">
-                  {isArabic ? "الصادق للبهارات" : "Al Sadek Spices"}
+                  {isArabic ? "الصادق للبهارات" : "Al Sadeq Spices"}
                 </h2>
 
                 <p className="text-stone-400 text-sm mb-6">

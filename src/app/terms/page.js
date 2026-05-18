@@ -32,7 +32,7 @@ export default function TermsPage() {
               <p className="leading-relaxed">
                 {isArabic
                   ? "باستخدامك لموقع الصادق للبهارات أو إجرائك لأي عملية شراء، فإنك توافق على الالتزام بهذه الشروط والأحكام."
-                  : "By using the Al Sadek Spices website or placing a purchase, you agree to be bound by these Terms and Conditions."}
+                  : "By using the Al Sadeq Spices website or placing a purchase, you agree to be bound by these Terms and Conditions."}
               </p>
             </section>
 
@@ -86,7 +86,7 @@ export default function TermsPage() {
               <p className="leading-relaxed">
                 {isArabic
                   ? "لن تكون الصادق للبهارات مسؤولة عن أي أضرار غير مباشرة أو عرضية تنشأ عن استخدام منتجاتنا أو خدماتنا."
-                  : "Al Sadek Spices shall not be liable for any indirect or incidental damages arising from the use of our products or services."}
+                  : "Al Sadeq Spices shall not be liable for any indirect or incidental damages arising from the use of our products or services."}
               </p>
             </section>
 

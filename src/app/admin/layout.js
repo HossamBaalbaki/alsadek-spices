@@ -81,13 +81,13 @@ export default function AdminLayout({ children }) {
           <span className="text-2xl flex-shrink-0">🌶️</span>
           {!desktopCollapsed && (
             <div className="lg:block hidden">
-              <p className="text-white font-black text-sm">Al Sadek</p>
+              <p className="text-white font-black text-sm">Al Sadeq</p>
               <p className="text-stone-400 text-xs">Admin Panel</p>
             </div>
           )}
           {/* Always show on mobile */}
           <div className="lg:hidden">
-            <p className="text-white font-black text-sm">Al Sadek</p>
+            <p className="text-white font-black text-sm">Al Sadeq</p>
             <p className="text-stone-400 text-xs">Admin Panel</p>
           </div>
         </div>

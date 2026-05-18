@@ -78,14 +78,14 @@ export default function AboutPage() {
   const content = {
     en: {
       heroBadge: "Our Story",
-      heroTitle: ["About", "Al Sadek", "Spices"],
+      heroTitle: ["About", "Al Sadeq", "Spices"],
       heroSub:
         "Born in the heart of Doha, we've been bringing the world's finest spices to Qatari homes since 2018.",
 
       storyLabel: "How it all began",
       storyTitle: "A Passion for Pure Flavor",
       storyP1:
-        "Al Sadek Spices was founded in 2018 by a family with deep roots in Qatar's culinary tradition. What started as a small market stall in Doha's old souq has grown into one of Qatar's most trusted premium spice destinations.",
+        "Al Sadeq Spices was founded in 2018 by a family with deep roots in Qatar's culinary tradition. What started as a small market stall in Doha's old souq has grown into one of Qatar's most trusted premium spice destinations.",
       storyP2:
         "We travel to the source — from the saffron fields of Iran and the pepper coasts of Kerala to the cardamom hills of Guatemala — selecting only the highest quality spices that meet our exacting standards.",
       storyP3:
@@ -386,7 +386,7 @@ export default function AboutPage() {
                     </div>
                     <div className="border-t border-white/10 pt-6">
                       <p className="text-white font-black text-lg mb-1">
-                        {isArabic ? "الصادق للبهارات" : "Al Sadek Spices"}
+                        {isArabic ? "الصادق للبهارات" : "Al Sadeq Spices"}
                       </p>
                       <p className="text-amber-400 text-sm">
                         {isArabic ? "الدوحة، قطر — منذ 2018" : "Doha, Qatar — Est. 2018"}

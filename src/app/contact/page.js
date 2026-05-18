@@ -148,7 +148,7 @@ export default function ContactPage() {
             <div className="inline-flex items-center gap-2 bg-amber-700/20 border border-amber-700/30 rounded-full px-4 py-1.5 mb-4">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
               <span className="text-amber-400 text-sm font-semibold tracking-wide">
-                {isArabic ? "الصادق للبهارات" : "Al Sadek Spices"}
+                {isArabic ? "الصادق للبهارات" : "Al Sadeq Spices"}
               </span>
             </div>
             <h1 className="text-4xl md:text-5xl font-black text-white mb-4">
@@ -301,7 +301,7 @@ export default function ContactPage() {
                 {/* Map Placeholder */}
                 <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm flex-1 min-h-[220px]">
                   <iframe
-                    title="Al Sadek Spices Location"
+                    title="Al Sadeq Spices Location"
                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d462560.6828613893!2d51.20653!3d25.285447!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e45c534ffdce87f%3A0x3ad7e7b5c1a22c4!2sDoha%2C%20Qatar!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus"
                     width="100%"
                     height="100%"

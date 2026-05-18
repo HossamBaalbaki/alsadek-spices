@@ -136,7 +136,7 @@ function ThermalReceipt({ order, onClose }) {
 
             {/* ── HEADER ── */}
             <div style={{ textAlign:"center", paddingBottom:"10px" }}>
-              <div style={{ fontSize:"22px", fontWeight:900, letterSpacing:"3px" }}>🌶️ AL SADEK 🌶️</div>
+              <div style={{ fontSize:"22px", fontWeight:900, letterSpacing:"3px" }}>🌶️ AL SADEQ 🌶️</div>
               <div style={{ fontSize:"15px", fontWeight:700, letterSpacing:"2px", marginTop:"3px", direction:"rtl" }}>الصادق للبهارات</div>
               <div style={{ fontSize:"10px", color:"#777", marginTop:"3px" }}>Premium Spices · Qatar</div>
             </div>
@@ -285,7 +285,7 @@ function ThermalReceipt({ order, onClose }) {
             <div style={{ textAlign:"center", paddingTop:"4px" }}>
               <div style={{ fontSize:"16px", fontWeight:900 }}>Thank you! 🌶️</div>
               <div style={{ fontSize:"14px", fontWeight:700, marginTop:"2px", direction:"rtl" }}>شكراً لتسوقكم معنا</div>
-              <div style={{ fontSize:"9px", color:"#888", marginTop:"6px" }}>Al Sadek Spices · Qatar</div>
+              <div style={{ fontSize:"9px", color:"#888", marginTop:"6px" }}>Al Sadeq Spices · Qatar</div>
               <div style={{ fontSize:"9px", color:"#bbb", marginTop:"2px" }}>Printed: {dateStr} {timeStr}</div>
             </div>
 

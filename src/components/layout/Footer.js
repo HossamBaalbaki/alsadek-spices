@@ -84,7 +84,7 @@ export default function Footer() {
               </div>
               <div className="flex flex-col leading-tight">
                 <span className="font-black text-lg text-white tracking-tight">
-                  {isArabic ? "الصادق" : "Al Sadek"}
+                  {isArabic ? "الصادق" : "Al Sadeq"}
                 </span>
                 <span className="text-xs text-amber-500 font-semibold tracking-wide">
                   {isArabic ? "للبهارات" : "SPICES"}
@@ -297,37 +297,34 @@ export default function Footer() {
       {/* ─── BOTTOM BAR — payment + copyright merged ─────────────────────────── */}
       <div className="border-t border-stone-800">
         <div className="container py-5">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            {/* Payment Icons */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-xs text-stone-500 mr-1">
-                {isArabic ? "طرق الدفع:" : "We Accept:"}
-              </p>
-              <div className="bg-white rounded px-2 py-1 flex items-center justify-center h-7">
-                <span className="text-blue-800 font-black text-xs tracking-tight">VISA</span>
-              </div>
-              <div className="bg-white rounded px-2 py-1 flex items-center justify-center h-7 gap-1">
-                <div className="w-4 h-4 rounded-full bg-red-500 opacity-90" />
-                <div className="w-4 h-4 rounded-full bg-yellow-400 opacity-90 -ml-2" />
-              </div>
-              <div className="bg-white rounded px-2 py-1 flex items-center justify-center h-7">
-                <span className="text-black font-semibold text-xs">Apple Pay</span>
-              </div>
-              <div className="bg-stone-700 rounded px-2 py-1 flex items-center justify-center h-7">
-                <span className="text-stone-200 font-semibold text-xs">
-                  {isArabic ? "كاش" : "Cash"}
-                </span>
-              </div>
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            {/* Powered by */}
+            <p className="text-xs text-stone-600">
+              Powered by{" "}
+              <span className="text-stone-500 font-semibold">LebConnect</span>
+              <span className="text-stone-700 mx-1.5">·</span>
+              <a
+                href="tel:+97466365795"
+                className="text-stone-500 hover:text-stone-400 transition-colors duration-200"
+              >
+                +974 66 36 57 95
+              </a>
+            </p>
 
-            {/* Copyright */}
-            <div className="flex flex-col sm:items-end gap-1 text-xs text-stone-500">
+            {/* Copyright + Admin */}
+            <div className="flex items-center gap-2 text-xs text-stone-500">
               <p>
                 © {currentYear}{" "}
-                {isArabic ? "الصادق للبهارات" : "Al Sadek Spices"}.{" "}
+                {isArabic ? "الصادق للبهارات" : "Al Sadeq Spices"}.{" "}
                 {t.footer.allRights}
               </p>
-              <p>{t.footer.madeWith}</p>
+              <span className="text-stone-700">·</span>
+              <Link
+                href="/admin"
+                className="text-stone-600 hover:text-stone-400 transition-colors duration-200"
+              >
+                Admin Portal
+              </Link>
             </div>
           </div>
         </div>

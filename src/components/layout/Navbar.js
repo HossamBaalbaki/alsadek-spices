@@ -118,7 +118,7 @@ export default function Navbar() {
               </div>
               <div className="flex flex-col leading-none">
                 <span className="font-black text-base text-stone-900 tracking-tight">
-                  {isArabic ? "الصادق" : "Al Sadek"}
+                  {isArabic ? "الصادق" : "Al Sadeq"}
                 </span>
                 <span className="text-[10px] text-amber-700 font-bold tracking-[0.12em] uppercase mt-0.5">
                   {isArabic ? "للبهارات" : "Spices"}

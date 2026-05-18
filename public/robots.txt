@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /order-confirmation
+Disallow: /track
+Disallow: /order/
+
+# Crawl delay to prevent server overload
+Crawl-delay: 1
+
+# Sitemap
+Sitemap: https://alsadek-spices.vercel.app/sitemap.xml

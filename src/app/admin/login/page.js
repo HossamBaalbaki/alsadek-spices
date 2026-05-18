@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🌶️</div>
           <h1 className="text-3xl font-black text-white mb-1">
-            Al Sadek Spices
+            Al Sadeq Spices
           </h1>
           <p className="text-stone-400">Admin Dashboard</p>
         </div>
@@ -121,7 +121,7 @@ export default function AdminLoginPage() {
           </form>
 
           <p className="text-xs text-stone-400 text-center mt-6">
-            Al Sadek Spices Admin Panel v1.0
+            Al Sadeq Spices Admin Panel v1.0
           </p>
         </div>
       </div>

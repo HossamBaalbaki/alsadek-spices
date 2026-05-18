@@ -320,7 +320,7 @@ export default function Footer() {
               </p>
               <span className="text-stone-700">·</span>
               <Link
-                href="/admin"
+                href="/admin/login"
                 className="text-stone-600 hover:text-stone-400 transition-colors duration-200"
               >
                 Admin Portal

@@ -7,7 +7,6 @@ import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCart } from "@/context/CartContext";
 import { isSoldOut } from "@/data/products";
-import { parseWeightLabelToGrams } from "@/lib/stock";
 import { ProductBadges, SavingsBadge } from "@/components/ui/Badge";
 import { QuantitySelector } from "@/components/ui/Button";
 import Navbar from "@/components/layout/Navbar";

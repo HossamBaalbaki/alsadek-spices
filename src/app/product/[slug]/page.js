@@ -517,7 +517,7 @@ export default function ProductPage() {
                   {t.general.viewAll}
                 </Link>
               </div>
-              <ProductGrid products={relatedProducts} loading={false} columns="default" />
+              <ProductGrid products={relatedProducts} loading={false} columns="three" />
             </div>
           )}
         </div>

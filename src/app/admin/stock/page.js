@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, memo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
 import Link from "next/link";
 import { usePolling } from "@/hooks/usePolling";
 
@@ -12,7 +12,7 @@ const getPrice = (s) => {
 };
 
 // ─── STOCK ROW — memoized so only changed rows re-render ──────────────────────
-const StockRow = memo(function StockRow({ s, isSelected, onToggle, onToggleActive, onSetCategory }) {
+const StockRow = memo(function StockRow({ s, isSelected, onToggle, onToggleActive }) {
   const price = getPrice(s);
   const pcs = Number(s.currentStockPcs);
   const threshold = Number(s.lowStockThresholdPcs || 5);
@@ -20,41 +20,16 @@ const StockRow = memo(function StockRow({ s, isSelected, onToggle, onToggleActiv
   const low = !empty && pcs <= threshold;
 
   return (
-    <tr
-      className={`transition-colors ${
-        isSelected
-          ? "bg-amber-50"
-          : empty
-          ? "bg-red-50 hover:bg-red-100"
-          : low
-          ? "bg-orange-50 hover:bg-orange-100"
-          : "hover:bg-stone-50"
-      }`}
-    >
-      {/* CHECKBOX */}
+    <tr className={`transition-colors ${isSelected ? "bg-amber-50" : empty ? "bg-red-50 hover:bg-red-100" : low ? "bg-orange-50 hover:bg-orange-100" : "hover:bg-stone-50"}`}>
       <td className="py-4 px-4">
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={() => onToggle(s.id)}
-          className="rounded"
-        />
+        <input type="checkbox" checked={isSelected} onChange={() => onToggle(s.id)} className="rounded" />
       </td>
-
-      {/* ITEM */}
       <td className="py-4 px-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0 overflow-hidden">
             {s.images?.[0] ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={s.images[0]}
-                alt={s.nameEn}
-                loading="lazy"
-                width={40}
-                height={40}
-                className="w-full h-full object-cover"
-              />
+              <img src={s.images[0]} alt={s.nameEn} loading="lazy" width={40} height={40} className="w-full h-full object-cover" />
             ) : (
               <span className="text-xl">🧂</span>
             )}
@@ -62,72 +37,40 @@ const StockRow = memo(function StockRow({ s, isSelected, onToggle, onToggleActiv
           <div>
             <div className="flex items-center gap-1.5 flex-wrap">
               <p className="font-bold text-stone-800 text-sm">{s.nameEn}</p>
-              {s.type === "bundle" && (
-                <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full">BUNDLE</span>
-              )}
-              {s.featured && (
-                <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">⭐ FEATURED</span>
-              )}
-              {s.bestSeller && (
-                <span className="text-[10px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">🔥 BEST</span>
-              )}
+              {s.type === "bundle" && <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full">BUNDLE</span>}
+              {s.featured && <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">⭐ FEATURED</span>}
+              {s.bestSeller && <span className="text-[10px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">🔥 BEST</span>}
             </div>
             <p className="text-xs text-stone-400">{s.nameAr}</p>
           </div>
         </div>
       </td>
-
-      {/* CATEGORY */}
       <td className="py-4 px-4">
         {s.category ? (
-          <button
-            onClick={() => onSetCategory(String(s.category.id))}
-            className="text-xs font-semibold bg-stone-100 text-stone-600 px-2 py-1 rounded-full hover:bg-amber-100 hover:text-amber-700 transition-colors"
-          >
-            {s.category.nameEn}
-          </button>
+          <span className="text-xs font-semibold bg-stone-100 text-stone-600 px-2 py-1 rounded-full">{s.category.nameEn}</span>
         ) : (
           <span className="text-xs text-stone-400">—</span>
         )}
       </td>
-
-      {/* STOCK PCS */}
       <td className="py-4 px-4">
-        <p className={`text-sm font-bold ${empty ? "text-red-700" : low ? "text-orange-700" : "text-stone-800"}`}>
-          {pcs} pcs
-        </p>
-        {empty && (
-          <span className="inline-block mt-1 text-[10px] font-bold bg-red-600 text-white px-2 py-0.5 rounded-full">OUT OF STOCK</span>
-        )}
-        {low && (
-          <span className="inline-block mt-1 text-[10px] font-bold bg-orange-500 text-white px-2 py-0.5 rounded-full">LOW</span>
-        )}
+        <p className={`text-sm font-bold ${empty ? "text-red-700" : low ? "text-orange-700" : "text-stone-800"}`}>{pcs} pcs</p>
+        {empty && <span className="inline-block mt-1 text-[10px] font-bold bg-red-600 text-white px-2 py-0.5 rounded-full">OUT OF STOCK</span>}
+        {low && <span className="inline-block mt-1 text-[10px] font-bold bg-orange-500 text-white px-2 py-0.5 rounded-full">LOW</span>}
       </td>
-
-      {/* PRICE — computed once above, used here */}
       <td className="py-4 px-4">
         {price > 0 ? (
-          <span className="text-sm font-bold text-stone-800">
-            {price.toFixed(2)}{" "}
-            <span className="text-xs font-normal text-stone-400">QAR</span>
-          </span>
+          <span className="text-sm font-bold text-stone-800">{price.toFixed(2)} <span className="text-xs font-normal text-stone-400">QAR</span></span>
         ) : (
           <span className="text-xs text-stone-400">—</span>
         )}
       </td>
-
-      {/* IN BUNDLES */}
       <td className="py-4 px-4">
         {Number(s._count?.inBundles) > 0 ? (
-          <span className="text-xs font-semibold bg-purple-50 text-purple-700 px-2 py-1 rounded-full">
-            {s._count.inBundles} bundle{s._count.inBundles === 1 ? "" : "s"}
-          </span>
+          <span className="text-xs font-semibold bg-purple-50 text-purple-700 px-2 py-1 rounded-full">{s._count.inBundles} bundle{s._count.inBundles === 1 ? "" : "s"}</span>
         ) : (
           <span className="text-xs text-stone-400">—</span>
         )}
       </td>
-
-      {/* ACTIVE TOGGLE */}
       <td className="py-4 px-4">
         <button
           onClick={() => onToggleActive(s.id, s.active)}
@@ -136,14 +79,8 @@ const StockRow = memo(function StockRow({ s, isSelected, onToggle, onToggleActiv
           <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${s.active ? "translate-x-6" : "translate-x-1"}`} />
         </button>
       </td>
-
-      {/* ACTIONS */}
       <td className="py-4 px-4">
-        <Link
-          href={`/admin/stock/${s.id}/edit`}
-          className="p-1.5 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors inline-flex"
-          title="Edit / Restock"
-        >
+        <Link href={`/admin/stock/${s.id}/edit`} className="p-1.5 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors inline-flex" title="Edit / Restock">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
@@ -153,57 +90,78 @@ const StockRow = memo(function StockRow({ s, isSelected, onToggle, onToggleActiv
   );
 });
 
+const PAGE_SIZE = 25;
+const token = () => localStorage.getItem("adminToken");
+
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
 export default function AdminStockPage() {
   const [stocks, setStocks] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [pagination, setPagination] = useState({ total: 0, page: 1, pages: 1 });
+
+  // ─── FILTERS (sent to server) ─────────────────────────────────────────────
+  const [searchInput, setSearchInput] = useState("");  // raw input
+  const [search, setSearch] = useState("");            // debounced
   const [typeFilter, setTypeFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [lowOnly, setLowOnly] = useState(false);
+  const [page, setPage] = useState(1);
+
+  // ─── UI ───────────────────────────────────────────────────────────────────
   const [selected, setSelected] = useState(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const token = () => localStorage.getItem("adminToken");
+  // ─── DEBOUNCE SEARCH — 350ms delay ────────────────────────────────────────
+  useEffect(() => {
+    const t = setTimeout(() => { setSearch(searchInput); setPage(1); }, 350);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
-  // ─── SMART STATE UPDATE — only replaces stocks if data actually changed ─────
-  // Prevents the polling-triggered white flash: if data is identical, the same
-  // array reference is returned so React bails out of re-rendering entirely.
-  const applyStocksUpdate = useCallback((newData) => {
-    setStocks((prev) => {
-      if (prev.length !== newData.length) return newData;
-      const changed = newData.some((s, i) => {
-        const p = prev[i];
-        return !p || p.id !== s.id || p.currentStockPcs !== s.currentStockPcs || p.active !== s.active;
-      });
-      return changed ? newData : prev;
-    });
-  }, []);
+  // Reset to page 1 when any filter changes
+  useEffect(() => { setPage(1); setSelected(new Set()); }, [search, typeFilter, categoryFilter, lowOnly]);
 
-  const fetchStocks = useCallback(async (lowFilter, silent = false) => {
+  // ─── BUILD QUERY STRING ───────────────────────────────────────────────────
+  const buildQuery = useCallback((pg) => {
+    const p = new URLSearchParams();
+    p.set("page", String(pg));
+    p.set("limit", String(PAGE_SIZE));
+    if (search) p.set("search", search);
+    if (typeFilter !== "all") p.set("type", typeFilter);
+    if (categoryFilter !== "all") p.set("categoryId", categoryFilter);
+    if (lowOnly) p.set("low", "true");
+    return p.toString();
+  }, [search, typeFilter, categoryFilter, lowOnly]);
+
+  // ─── FETCH ────────────────────────────────────────────────────────────────
+  const fetchStocks = useCallback(async (pg = page, silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (lowFilter) params.set("low", "true");
-      const res = await fetch(`/api/admin/stock?${params}`, {
+      const res = await fetch(`/api/admin/stock?${buildQuery(pg)}`, {
         headers: { Authorization: `Bearer ${token()}` },
       });
       const data = await res.json();
       if (data.success) {
-        if (silent) {
-          applyStocksUpdate(data.data);
-        } else {
-          setStocks(data.data);
-        }
+        setStocks((prev) => {
+          if (silent && prev.length === data.data.length) {
+            const changed = data.data.some((s, i) =>
+              !prev[i] || prev[i].id !== s.id ||
+              prev[i].currentStockPcs !== s.currentStockPcs ||
+              prev[i].active !== s.active
+            );
+            return changed ? data.data : prev;
+          }
+          return data.data;
+        });
+        setPagination(data.pagination);
       }
     } catch (e) {
       console.error("Fetch stock error:", e);
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [applyStocksUpdate]);
+  }, [buildQuery, page]);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -212,91 +170,39 @@ export default function AdminStockPage() {
       });
       const data = await res.json();
       if (data.success) setCategories(data.data);
-    } catch (e) {
-      console.error("Fetch categories error:", e);
-    }
+    } catch (e) { console.error(e); }
   }, []);
 
-  useEffect(() => {
-    fetchStocks(lowOnly);
-    fetchCategories();
-  }, [lowOnly, fetchStocks, fetchCategories]);
+  useEffect(() => { fetchStocks(page); }, [page, buildQuery]); // eslint-disable-line
+  useEffect(() => { fetchCategories(); }, [fetchCategories]);
 
-  usePolling(() => fetchStocks(lowOnly, true), 15000);
+  // Poll every 60s (stock data doesn't need real-time updates)
+  usePolling(() => fetchStocks(page, true), 60000);
 
-  // ─── MEMOIZED FILTER — recomputes only when inputs change ─────────────────
-  const filtered = useMemo(() => stocks.filter((s) => {
-    const matchSearch =
-      !search ||
-      s.nameEn.toLowerCase().includes(search.toLowerCase()) ||
-      s.nameAr.includes(search);
-    const matchType = typeFilter === "all" || s.type === typeFilter;
-    const matchCat =
-      categoryFilter === "all"
-        ? true
-        : categoryFilter === "none"
-        ? !s.categoryId
-        : s.category?.id === Number(categoryFilter);
-    return matchSearch && matchType && matchCat;
-  }), [stocks, search, typeFilter, categoryFilter]);
-
-  // ─── MEMOIZED DERIVED VALUES ──────────────────────────────────────────────
-  const totalLow = useMemo(
-    () => stocks.filter((s) => {
-      const pcs = Number(s.currentStockPcs);
-      return pcs <= 0 || pcs <= Number(s.lowStockThresholdPcs || 5);
-    }).length,
-    [stocks]
-  );
-
-  // ─── PAGINATION ───────────────────────────────────────────────────────────
-  const PAGE_SIZE = 25;
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // Reset to page 1 whenever filters change
-  useEffect(() => { setCurrentPage(1); }, [search, typeFilter, categoryFilter, lowOnly]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = useMemo(
-    () => filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
-    [filtered, currentPage]
-  );
-
-  const allFilteredIds = useMemo(() => filtered.map((s) => s.id), [filtered]);
-
+  // ─── CATEGORY TABS (counts come from server total, tabs built from categories) ─
   const categoryTabs = useMemo(() => [
-    { id: "all", label: "All", count: stocks.length },
-    { id: "none", label: "Uncategorized", count: stocks.filter((s) => !s.categoryId).length },
-    ...categories.map((c) => ({
-      id: String(c.id),
-      label: c.nameEn,
-      count: stocks.filter((s) => s.category?.id === c.id).length,
-    })),
-  ], [stocks, categories]);
+    { id: "all", label: "All" },
+    { id: "none", label: "Uncategorized" },
+    ...categories.map((c) => ({ id: String(c.id), label: c.nameEn })),
+  ], [categories]);
 
-  // ─── SELECTION ───────────────────────────────────────────────────────────
-  const allSelected = allFilteredIds.length > 0 && allFilteredIds.every((id) => selected.has(id));
+  // ─── SELECTION ────────────────────────────────────────────────────────────
+  const pageIds = useMemo(() => stocks.map((s) => s.id), [stocks]);
+  const allSelected = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
   const someSelected = selected.size > 0;
 
-  // Stable callbacks — won't recreate on every render
   const toggleOne = useCallback((id) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+    setSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   }, []);
 
   const toggleAll = useCallback(() => {
     setSelected((prev) => {
-      if (allFilteredIds.every((id) => prev.has(id))) {
-        const next = new Set(prev);
-        allFilteredIds.forEach((id) => next.delete(id));
-        return next;
+      if (pageIds.every((id) => prev.has(id))) {
+        const n = new Set(prev); pageIds.forEach((id) => n.delete(id)); return n;
       }
-      return new Set([...prev, ...allFilteredIds]);
+      return new Set([...prev, ...pageIds]);
     });
-  }, [allFilteredIds]);
+  }, [pageIds]);
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
 
@@ -310,26 +216,21 @@ export default function AdminStockPage() {
       });
       const data = await res.json();
       if (data.success)
-        setStocks((prev) => prev.map((s) => (s.id === id ? { ...s, active: !current } : s)));
-    } catch (e) {
-      console.error(e);
-    }
+        setStocks((prev) => prev.map((s) => s.id === id ? { ...s, active: !current } : s));
+    } catch (e) { console.error(e); }
   }, []);
 
   // ─── BULK ACTIONS ─────────────────────────────────────────────────────────
   const bulkSetActive = async (active) => {
     setBulkLoading(true);
-    const ids = [...selected];
-    await Promise.all(
-      ids.map((id) =>
-        fetch(`/api/admin/stock/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token()}` },
-          body: JSON.stringify({ active }),
-        })
-      )
-    );
-    setStocks((prev) => prev.map((s) => (selected.has(s.id) ? { ...s, active } : s)));
+    await Promise.all([...selected].map((id) =>
+      fetch(`/api/admin/stock/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({ active }),
+      })
+    ));
+    setStocks((prev) => prev.map((s) => selected.has(s.id) ? { ...s, active } : s));
     clearSelection();
     setBulkLoading(false);
   };
@@ -337,38 +238,28 @@ export default function AdminStockPage() {
   const bulkDelete = async () => {
     setBulkLoading(true);
     setConfirmDelete(false);
-    const ids = [...selected];
-    await Promise.all(
-      ids.map((id) =>
-        fetch(`/api/admin/stock/${id}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token()}` },
-        })
-      )
-    );
-    setStocks((prev) => prev.filter((s) => !selected.has(s.id)));
+    await Promise.all([...selected].map((id) =>
+      fetch(`/api/admin/stock/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token()}` } })
+    ));
     clearSelection();
+    fetchStocks(page);
     setBulkLoading(false);
   };
 
+  const totalPages = pagination.pages;
+
   return (
     <div className="flex flex-col gap-6">
+
       {/* HEADER */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-black text-stone-800">Stock / Inventory</h2>
           <p className="text-stone-500 text-sm mt-1">
-            {filtered.length} item{filtered.length === 1 ? "" : "s"}
-            {totalLow > 0 && (
-              <span className="ml-2 text-red-600 font-semibold">
-                · {totalLow} need attention
-              </span>
-            )}
+            {pagination.total} item{pagination.total === 1 ? "" : "s"}
           </p>
         </div>
-        <Link href="/admin/stock/new" className="btn btn-primary">
-          + Add Stock
-        </Link>
+        <Link href="/admin/stock/new" className="btn btn-primary">+ Add Stock</Link>
       </div>
 
       {/* CATEGORY TABS */}
@@ -386,9 +277,6 @@ export default function AdminStockPage() {
               }`}
             >
               {tab.label}
-              <span className={`ml-1.5 ${categoryFilter === tab.id ? "text-amber-200" : "text-stone-400"}`}>
-                {tab.count}
-              </span>
             </button>
           ))}
         </div>
@@ -400,9 +288,9 @@ export default function AdminStockPage() {
           <div className="relative flex-1">
             <input
               type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search stock..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search stock…"
               className="input w-full pl-9"
             />
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -416,9 +304,7 @@ export default function AdminStockPage() {
                 onClick={() => setTypeFilter(val)}
                 className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-colors ${
                   typeFilter === val
-                    ? val === "bundle"
-                      ? "bg-purple-600 text-white border-purple-600"
-                      : "bg-stone-800 text-white border-stone-800"
+                    ? val === "bundle" ? "bg-purple-600 text-white border-purple-600" : "bg-stone-800 text-white border-stone-800"
                     : "bg-white text-stone-600 border-stone-200 hover:border-stone-400"
                 }`}
               >
@@ -452,7 +338,7 @@ export default function AdminStockPage() {
           <div className="flex items-center justify-center h-48">
             <div className="text-4xl animate-bounce">🧂</div>
           </div>
-        ) : filtered.length === 0 ? (
+        ) : stocks.length === 0 ? (
           <div className="text-center py-16 text-stone-400">
             <div className="text-5xl mb-3">📦</div>
             <p className="font-semibold">No stock items found</p>
@@ -476,14 +362,13 @@ export default function AdminStockPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
-                {paginated.map((s) => (
+                {stocks.map((s) => (
                   <StockRow
                     key={s.id}
                     s={s}
                     isSelected={selected.has(s.id)}
                     onToggle={toggleOne}
                     onToggleActive={toggleActive}
-                    onSetCategory={setCategoryFilter}
                   />
                 ))}
               </tbody>
@@ -496,18 +381,18 @@ export default function AdminStockPage() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between bg-white rounded-2xl border border-stone-200 px-5 py-3">
           <p className="text-xs text-stone-500">
-            Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length}
+            Showing {(pagination.page - 1) * PAGE_SIZE + 1}–{Math.min(pagination.page * PAGE_SIZE, pagination.total)} of {pagination.total}
           </p>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-stone-200 text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               ← Prev
             </button>
             {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+              .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
               .reduce((acc, p, idx, arr) => {
                 if (idx > 0 && arr[idx - 1] !== p - 1) acc.push("…");
                 acc.push(p);
@@ -515,24 +400,20 @@ export default function AdminStockPage() {
               }, [])
               .map((p, i) =>
                 p === "…" ? (
-                  <span key={`ellipsis-${i}`} className="px-2 text-stone-400 text-xs">…</span>
+                  <span key={`e${i}`} className="px-2 text-stone-400 text-xs">…</span>
                 ) : (
                   <button
                     key={p}
-                    onClick={() => setCurrentPage(p)}
-                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
-                      currentPage === p
-                        ? "bg-amber-700 text-white"
-                        : "text-stone-600 hover:bg-stone-100"
-                    }`}
+                    onClick={() => setPage(p)}
+                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${page === p ? "bg-amber-700 text-white" : "text-stone-600 hover:bg-stone-100"}`}
                   >
                     {p}
                   </button>
                 )
               )}
             <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-stone-200 text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Next →
@@ -546,16 +427,10 @@ export default function AdminStockPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full">
             <div className="text-4xl mb-3 text-center">🗑️</div>
-            <h3 className="text-lg font-black text-stone-800 text-center mb-2">
-              Delete {selected.size} item{selected.size === 1 ? "" : "s"}?
-            </h3>
-            <p className="text-sm text-stone-500 text-center mb-6">
-              This cannot be undone. Stock records, restock history, and all related data will be permanently deleted.
-            </p>
+            <h3 className="text-lg font-black text-stone-800 text-center mb-2">Delete {selected.size} item{selected.size === 1 ? "" : "s"}?</h3>
+            <p className="text-sm text-stone-500 text-center mb-6">This cannot be undone. Stock records and all related data will be permanently deleted.</p>
             <div className="flex gap-3">
-              <button onClick={() => setConfirmDelete(false)} className="flex-1 px-4 py-2.5 rounded-xl border border-stone-200 text-stone-700 font-semibold hover:bg-stone-50 transition-colors">
-                Cancel
-              </button>
+              <button onClick={() => setConfirmDelete(false)} className="flex-1 px-4 py-2.5 rounded-xl border border-stone-200 text-stone-700 font-semibold hover:bg-stone-50 transition-colors">Cancel</button>
               <button onClick={bulkDelete} disabled={bulkLoading} className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition-colors disabled:opacity-50">
                 {bulkLoading ? "Deleting…" : "Yes, Delete"}
               </button>

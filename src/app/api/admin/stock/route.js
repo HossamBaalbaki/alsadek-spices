@@ -31,9 +31,12 @@ export async function GET(request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search");
+    const search = searchParams.get("search") || "";
     const lowOnly = searchParams.get("low") === "true";
-    const type = searchParams.get("type"); // "single" | "bundle"
+    const type = searchParams.get("type");
+    const categoryId = searchParams.get("categoryId");
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "25", 10)));
 
     const where = {};
     if (search) {
@@ -43,21 +46,38 @@ export async function GET(request) {
       ];
     }
     if (type) where.type = type;
+    if (categoryId === "none") where.categoryId = null;
+    else if (categoryId) where.categoryId = Number(categoryId);
 
-    const stocks = await prisma.stock.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      include: {
-        category: { select: { id: true, slug: true, nameEn: true, nameAr: true } },
-        _count: { select: { restocks: true, inBundles: true } },
-      },
+    const include = {
+      category: { select: { id: true, slug: true, nameEn: true, nameAr: true } },
+      _count: { select: { restocks: true, inBundles: true } },
+    };
+
+    // Low-stock mode: post-filter (column comparison), no pagination needed — typically a small set
+    if (lowOnly) {
+      const all = await prisma.stock.findMany({ where, orderBy: { createdAt: "desc" }, include });
+      const filtered = all.filter((s) => Number(s.currentStockPcs) <= Number(s.lowStockThresholdPcs || 5));
+      return NextResponse.json({ success: true, data: filtered, pagination: { total: filtered.length, page: 1, pages: 1 } });
+    }
+
+    // Normal mode: server-side pagination
+    const [total, data] = await Promise.all([
+      prisma.stock.count({ where }),
+      prisma.stock.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        include,
+      }),
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      data,
+      pagination: { total, page, pages: Math.ceil(total / limit) },
     });
-
-    const filtered = lowOnly
-      ? stocks.filter((s) => s.currentStockPcs <= s.lowStockThresholdPcs)
-      : stocks;
-
-    return NextResponse.json({ success: true, data: filtered });
   } catch (error) {
     console.error("GET /api/admin/stock error:", error);
     return NextResponse.json({ success: false, message: "Failed to fetch stock" }, { status: 500 });

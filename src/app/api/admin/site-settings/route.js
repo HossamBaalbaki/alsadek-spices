@@ -10,6 +10,9 @@ const DEFAULT_SETTINGS = {
   promoSubtitleEn: "Shop our premium spices collection",
   promoSubtitleAr: "تسوق مجموعتنا من البهارات الفاخرة",
   freeDeliveryThreshold: 200,
+  workingHoursEn: "Daily: 8:00 AM - 11:00 PM",
+  workingHoursAr: "يومياً: 8:00 صباحاً - 11:00 مساءً",
+  whatsappNumber: "97466556393",
 };
 
 export async function GET(request) {
@@ -48,6 +51,9 @@ export async function PUT(request) {
       freeDeliveryThreshold: Number(body.freeDeliveryThreshold ?? DEFAULT_SETTINGS.freeDeliveryThreshold),
       tickerItemsEn: parseTickerItems(body.tickerItemsEn),
       tickerItemsAr: parseTickerItems(body.tickerItemsAr),
+      workingHoursEn: (body.workingHoursEn || DEFAULT_SETTINGS.workingHoursEn).trim(),
+      workingHoursAr: (body.workingHoursAr || DEFAULT_SETTINGS.workingHoursAr).trim(),
+      whatsappNumber: (body.whatsappNumber || DEFAULT_SETTINGS.whatsappNumber).trim().replace(/\D/g, ""),
     };
 
     if (!data.topBannerEn || !data.topBannerAr || !data.promoTitleEn || !data.promoTitleAr || !data.promoSubtitleEn || !data.promoSubtitleAr) {

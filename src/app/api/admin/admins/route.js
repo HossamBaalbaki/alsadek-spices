@@ -3,6 +3,35 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { verifyAdmin, unauthorized } from "@/lib/adminAuth";
 
+// ─── LIST ALL ADMINS ────────────────────────────────────────────────────────
+export async function GET(request) {
+  if (!verifyAdmin(request)) return unauthorized();
+  try {
+    const admins = await prisma.adminUser.findMany({
+      select: { id: true, name: true, email: true, role: true, createdAt: true },
+      orderBy: { createdAt: "asc" },
+    });
+    return NextResponse.json({ success: true, data: admins });
+  } catch (error) {
+    console.error("GET /api/admin/admins error:", error);
+    return NextResponse.json({ success: false, message: "Failed to fetch admins" }, { status: 500 });
+  }
+}
+
+// ─── DELETE ADMIN ───────────────────────────────────────────────────────────
+export async function DELETE(request) {
+  if (!verifyAdmin(request)) return unauthorized();
+  try {
+    const { id } = await request.json();
+    if (!id) return NextResponse.json({ success: false, message: "ID required" }, { status: 400 });
+    await prisma.adminUser.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE /api/admin/admins error:", error);
+    return NextResponse.json({ success: false, message: "Failed to delete admin" }, { status: 500 });
+  }
+}
+
 // ─── CREATE NEW ADMIN ───────────────────────────────────────────────────────
 export async function POST(request) {
   if (!verifyAdmin(request)) return unauthorized();

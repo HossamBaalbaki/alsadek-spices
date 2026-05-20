@@ -74,51 +74,59 @@ function Reveal({ children, className = "", direction = "up", delay = 0 }) {
 export default function AboutPage() {
   const { isArabic } = useLanguage();
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "";
+  const [productCount, setProductCount] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/products?limit=1")
+      .then((r) => r.json())
+      .then((d) => { if (d.pagination?.total) setProductCount(d.pagination.total); })
+      .catch(() => {});
+  }, []);
 
   const content = {
     en: {
       heroBadge: "Our Story",
-      heroTitle: ["About", "Al Sadeq", "Spices"],
+      heroTitle: ["About", "Hamad Special", "Spices"],
       heroSub:
-        "Born in the heart of Doha, we've been bringing the world's finest spices to Qatari homes since 2018.",
+        "Born in the heart of Doha, we've been crafting authentic Qatari spice blends with homemade techniques since January 2010.",
 
       storyLabel: "How it all began",
-      storyTitle: "A Passion for Pure Flavor",
+      storyTitle: "A Passion for Authentic Qatari Flavor",
       storyP1:
-        "Al Sadeq Spices was founded in 2018 by a family with deep roots in Qatar's culinary tradition. What started as a small market stall in Doha's old souq has grown into one of Qatar's most trusted premium spice destinations.",
+        "Hamad Special Spices was founded in January 2010 in Doha, Qatar — operated by Al Sadeq Trading. What began as a family passion for preserving authentic Qatari culinary heritage has grown into one of Qatar's most trusted premium spice brands.",
       storyP2:
-        "We travel to the source — from the saffron fields of Iran and the pepper coasts of Kerala to the cardamom hills of Guatemala — selecting only the highest quality spices that meet our exacting standards.",
+        "Our secret is simple: homemade preparation techniques passed down through generations. Every blend is crafted with care, using clean and carefully selected ingredients that deliver a genuine taste experience you won't find anywhere else.",
       storyP3:
-        "Every gram we sell carries the story of the land it came from, the hands that harvested it, and the generations of knowledge that shaped it. We are not just selling spices. We are delivering culture.",
+        "We believe in preserving the traditional culinary heritage of Qatar while bringing it to every home and professional kitchen. More than spices — we deliver culture, memory, and taste.",
 
       statsLabel: "By the numbers",
-      statsTitle: "Trusted by Thousands",
+      statsTitle: "15+ Years of Trust",
       stats: [
-        { value: 500, suffix: "+", label: "Premium Products" },
-        { value: 10000, suffix: "+", label: "Happy Customers" },
-        { value: 6, suffix: "+", label: "Years in Qatar" },
-        { value: 15, suffix: "+", label: "Source Countries" },
+        { value: productCount ?? 0, suffix: "", label: "Premium Products" },
+        { value: 7000, suffix: "+", label: "Happy Customers" },
+        { value: 15, suffix: "+", label: "Years in Qatar" },
+        { value: 5, suffix: "", label: "Mobile Service Lines" },
       ],
 
       missionLabel: "What drives us",
-      missionTitle: "Our Mission",
+      missionTitle: "Our Mission & Vision",
       missionSub:
-        "To bring authentic, uncompromised flavors from every corner of the world directly to your kitchen in Qatar.",
+        "To be recognized as a trusted Qatari spice brand that delivers authentic taste experiences while preserving traditional culinary heritage.",
       pillars: [
         {
           icon: "🌿",
-          title: "Purity",
-          desc: "We never use additives, preservatives, or artificial colors. What you receive is exactly what nature intended.",
+          title: "Quality & Purity",
+          desc: "High-quality, clean, and carefully prepared spice blends. No additives, no shortcuts — just pure authentic ingredients.",
         },
         {
-          icon: "🔬",
-          title: "Quality Control",
-          desc: "Every batch is tested for aroma, color, and potency before it reaches your door. No exceptions.",
+          icon: "🏡",
+          title: "Homemade Techniques",
+          desc: "Every blend is prepared using authentic homemade techniques that enhance both home and professional cooking.",
         },
         {
           icon: "🤝",
-          title: "Fair Trade",
-          desc: "We work directly with farmers and cooperatives, ensuring ethical sourcing and fair compensation across our supply chain.",
+          title: "Customer Satisfaction",
+          desc: "Qatari craftsmanship and cultural relevance at every step — from sourcing to your table.",
         },
       ],
 
@@ -126,97 +134,97 @@ export default function AboutPage() {
       timelineTitle: "How We Got Here",
       timeline: [
         {
-          year: "2018",
+          year: "2010",
           icon: "🌱",
-          title: "Humble Beginnings",
-          desc: "Started as a small stall in Doha's Souq Waqif, selling hand-selected whole spices to local families and restaurants.",
+          title: "Founded in Doha",
+          desc: "Hamad Special Spices was established in January 2010 by Al Sadeq Trading, starting with a passion for authentic Qatari spice blends.",
         },
         {
-          year: "2019",
+          year: "2013",
           icon: "📦",
-          title: "First Warehouse",
-          desc: "Opened our first storage and processing facility in Al Wakra, enabling bulk sourcing directly from origin countries.",
+          title: "Growing the Range",
+          desc: "Expanded our product line to include a wide variety of seed, powder, and mixed spices crafted with homemade preparation methods.",
+        },
+        {
+          year: "2017",
+          icon: "🏆",
+          title: "Established Brand",
+          desc: "Became a recognized name across Doha for premium quality and authentic Qatari taste, trusted by homes and restaurants alike.",
         },
         {
           year: "2021",
           icon: "🚀",
           title: "Going Digital",
-          desc: "Launched our online store, bringing premium spices to every corner of Qatar with same-day delivery in Doha.",
-        },
-        {
-          year: "2023",
-          icon: "🎁",
-          title: "Gift Collections",
-          desc: "Introduced our signature gift bundles — curated, beautifully packaged sets that became Qatar's go-to premium gift.",
+          desc: "Launched our online store, making our premium spice blends accessible to every corner of Qatar with fast delivery.",
         },
         {
           year: "2025",
           icon: "⭐",
           title: "Today & Beyond",
-          desc: "Serving 10,000+ customers across Qatar with 500+ products and a commitment to never compromise on quality.",
+          desc: "Serving 7,000+ customers across Qatar with 500+ products, 5 direct contact lines, and an unwavering commitment to quality.",
         },
       ],
 
       valuesLabel: "What we stand for",
       valuesTitle: "Our Values",
       values: [
-        { icon: "🌶️", title: "Authenticity", desc: "Real spices from real origins. No blending, no substitutions." },
-        { icon: "💚", title: "Sustainability", desc: "Eco-friendly packaging and environmentally conscious sourcing." },
-        { icon: "🚚", title: "Speed", desc: "Same-day delivery in Doha because freshness can't wait." },
-        { icon: "💰", title: "Fairness", desc: "Premium quality shouldn't mean premium-only prices." },
-        { icon: "📚", title: "Knowledge", desc: "We educate our customers on how to use each spice to its fullest." },
-        { icon: "❤️", title: "Community", desc: "Proud to serve Qatar's diverse community and celebrate every cuisine." },
+        { icon: "🌶️", title: "Authenticity", desc: "Genuine Qatari spice blends crafted with traditional homemade techniques." },
+        { icon: "🌿", title: "Quality & Purity", desc: "Clean, carefully selected ingredients with no additives or artificial colors." },
+        { icon: "🚚", title: "Fast Delivery", desc: "Prompt delivery across Qatar because fresh spices shouldn't wait." },
+        { icon: "🏡", title: "Homemade Heritage", desc: "Recipes and methods passed down through generations of Qatari cooking tradition." },
+        { icon: "❤️", title: "Customer First", desc: "Five direct contact lines and daily availability from 8 AM to 11 PM." },
+        { icon: "🇶🇦", title: "Qatari Craftsmanship", desc: "Proudly made in Qatar — celebrating local culinary identity and culture." },
       ],
 
       ctaTitle: "Ready to Experience the Difference?",
-      ctaSub: "Shop our full collection or chat with our spice experts on WhatsApp.",
+      ctaSub: "Shop our full collection or reach us directly on WhatsApp — we're available daily.",
       ctaShop: "Shop Now",
       ctaChat: "Chat on WhatsApp",
     },
 
     ar: {
       heroBadge: "قصتنا",
-      heroTitle: ["عن", "الصادق", "للبهارات"],
+      heroTitle: ["عن", "بهارات حمد", "المميزة"],
       heroSub:
-        "نشأنا في قلب الدوحة، ونُحضر أفضل البهارات في العالم إلى المنازل القطرية منذ عام 2018.",
+        "نشأنا في قلب الدوحة، ونصنع خلطات قطرية أصيلة بتقنيات منزلية متوارثة منذ يناير 2010.",
 
       storyLabel: "كيف بدأنا",
-      storyTitle: "شغف بنكهة أصيلة",
+      storyTitle: "شغف بالنكهة القطرية الأصيلة",
       storyP1:
-        "تأسست الصادق للبهارات عام 2018 على يد عائلة قطرية ذات جذور عميقة في التراث الطهوي. بدأت كبسطة صغيرة في أسواق الدوحة القديمة، ونمت لتصبح واحدة من أكثر وجهات البهارات الفاخرة ثقةً في قطر.",
+        "تأسست بهارات حمد المميزة في يناير 2010 في الدوحة، قطر — تشغلها شركة الصادق للتجارة. بدأت شغفاً عائلياً بالحفاظ على التراث الطهوي القطري الأصيل، ونمت لتصبح واحدة من أكثر ماركات البهارات الفاخرة ثقةً في قطر.",
       storyP2:
-        "نسافر إلى المصدر — من حقول الزعفران في إيران وسواحل الفلفل في كيرالا إلى تلال الهيل في غواتيمالا — لنختار فقط أعلى جودة من البهارات التي تلبي معاييرنا الصارمة.",
+        "سرّنا بسيط: تقنيات تحضير منزلية متوارثة عبر الأجيال. كل خلطة تُصنع بعناية من مكونات نقية ومختارة بدقة، لتمنحك تجربة نكهة أصيلة لا تجدها في أي مكان آخر.",
       storyP3:
-        "كل جرام نبيعه يحمل قصة الأرض التي جاء منها، والأيدي التي حصدته، والأجيال من المعرفة التي شكّلته. نحن لا نبيع بهارات فحسب، بل نوصل ثقافات.",
+        "نؤمن بالحفاظ على التراث الطهوي القطري وإيصاله إلى كل بيت ومطبخ احترافي. نحن لا نبيع بهارات فحسب — بل نوصل ثقافة وذكريات ونكهة.",
 
       statsLabel: "بالأرقام",
-      statsTitle: "ثقة الآلاف",
+      statsTitle: "أكثر من 15 عاماً من الثقة",
       stats: [
-        { value: 500, suffix: "+", label: "منتج فاخر" },
-        { value: 10000, suffix: "+", label: "عميل سعيد" },
-        { value: 6, suffix: "+", label: "سنوات في قطر" },
-        { value: 15, suffix: "+", label: "دولة مصدر" },
+        { value: productCount ?? 0, suffix: "", label: "منتج فاخر" },
+        { value: 7000, suffix: "+", label: "عميل سعيد" },
+        { value: 15, suffix: "+", label: "عاماً في قطر" },
+        { value: 5, suffix: "", label: "خطوط تواصل مباشرة" },
       ],
 
       missionLabel: "ما يحركنا",
-      missionTitle: "مهمتنا",
+      missionTitle: "مهمتنا ورؤيتنا",
       missionSub:
-        "إحضار نكهات أصيلة وغير مخففة من كل ركن في العالم مباشرة إلى مطبخك في قطر.",
+        "أن نكون علامة قطرية موثوقة تقدم تجارب نكهة أصيلة مع الحفاظ على التراث الطهوي التقليدي.",
       pillars: [
         {
           icon: "🌿",
-          title: "النقاء",
-          desc: "لا نستخدم أي إضافات أو مواد حافظة أو ألوان اصطناعية. ما تحصل عليه هو بالضبط ما أرادته الطبيعة.",
+          title: "الجودة والنقاء",
+          desc: "خلطات بهارات عالية الجودة ونظيفة ومحضّرة بعناية. لا إضافات، لا اختصارات — فقط مكونات أصيلة نقية.",
         },
         {
-          icon: "🔬",
-          title: "مراقبة الجودة",
-          desc: "كل دفعة تُختبر للرائحة والون والقوة قبل أن تصل إليك. لا استثناءات.",
+          icon: "🏡",
+          title: "تقنيات منزلية",
+          desc: "كل خلطة تُحضَّر بتقنيات منزلية أصيلة تُعزز الطهي المنزلي والاحترافي على حدٍّ سواء.",
         },
         {
           icon: "🤝",
-          title: "التجارة العادلة",
-          desc: "نعمل مباشرة مع المزارعين لضمان الحصول الأخلاقي والتعويض العادل في سلسلة التوريد.",
+          title: "رضا العملاء",
+          desc: "حرفية قطرية وانتماء ثقافي في كل خطوة — من الاختيار إلى مائدتك.",
         },
       ],
 
@@ -224,50 +232,50 @@ export default function AboutPage() {
       timelineTitle: "كيف وصلنا إلى هنا",
       timeline: [
         {
-          year: "2018",
+          year: "2010",
           icon: "🌱",
-          title: "البدايات المتواضعة",
-          desc: "بدأنا بسطة صغيرة في سوق واقف بالدوحة، نبيع البهارات الكاملة المختارة يدوياً للعائلات والمطاعم المحلية.",
+          title: "التأسيس في الدوحة",
+          desc: "تأسست بهارات حمد المميزة في يناير 2010 على يد شركة الصادق للتجارة، انطلاقاً من شغف بالخلطات القطرية الأصيلة.",
         },
         {
-          year: "2019",
+          year: "2013",
           icon: "📦",
-          title: "أول مستودع",
-          desc: "افتتحنا أول منشأة تخزين ومعالجة في الوكرة، مما مكّننا من الاستيراد المباشر من دول المنشأ.",
+          title: "توسيع التشكيلة",
+          desc: "وسّعنا خط منتجاتنا ليشمل مجموعة واسعة من البهارات الكاملة والمطحونة والمخلوطة بتقنيات منزلية.",
+        },
+        {
+          year: "2017",
+          icon: "🏆",
+          title: "علامة راسخة",
+          desc: "أصبحنا اسماً معروفاً في الدوحة للجودة الفاخرة والنكهة القطرية الأصيلة، تثق بنا البيوت والمطاعم.",
         },
         {
           year: "2021",
           icon: "🚀",
           title: "الرقمنة",
-          desc: "أطلقنا متجرنا الإلكتروني، ليصل للبهارات الفاخرة إلى كل ركن في قطر مع توصيل في نفس اليوم.",
-        },
-        {
-          year: "2023",
-          icon: "🎁",
-          title: "مجموعات الهدايا",
-          desc: "أطلقنا باقات الهدايا المميزة — مجموعات منسقة بتغليف راقٍ أصبحت الهدية الفاخرة الأولى في قطر.",
+          desc: "أطلقنا متجرنا الإلكتروني، لتصل خلطاتنا الفاخرة إلى كل ركن في قطر مع توصيل سريع.",
         },
         {
           year: "2025",
           icon: "⭐",
           title: "اليوم وما بعده",
-          desc: "نخدم أكثر من 10,000 عميل في جميع أنحاء قطر مع 500+ منتج والتزام لا يتزعزع بالجودة.",
+          desc: "نخدم أكثر من 7,000 عميل في جميع أنحاء قطر بـ 500+ منتج و5 خطوط تواصل مباشرة والتزام لا يتزعزع بالجودة.",
         },
       ],
 
       valuesLabel: "ما نؤمن به",
       valuesTitle: "قيمنا",
       values: [
-        { icon: "🌶️", title: "الأصالة", desc: "بهارات حقيقية من أصول حقيقية. لا خلط، لا استبدال." },
-        { icon: "💚", title: "الاستدامة", desc: "تغليف صديق للبيئة ومصادر مسؤولة بيئياً." },
-        { icon: "🚚", title: "السرعة", desc: "توصيل في نفس اليوم في الدوحة لأن الطازج لا يحتمل الانتظار." },
-        { icon: "💰", title: "العدالة", desc: "الجودة الفاخرة لا يجب أن تعني أسعاراً فاخرة فقط." },
-        { icon: "📚", title: "المعرفة", desc: "نثقف عملاءنا على كيفية استخدام كل بهار لأقصى إمكاناته." },
-        { icon: "❤️", title: "المجتمع", desc: "فخورون بخدمة مجتمع قطر المتنوع والاحتفاء بكل مطبخ." },
+        { icon: "🌶️", title: "الأصالة", desc: "خلطات قطرية أصيلة تُحضَّر بتقنيات منزلية تقليدية متوارثة." },
+        { icon: "🌿", title: "الجودة والنقاء", desc: "مكونات نظيفة ومختارة بعناية بلا إضافات أو ألوان اصطناعية." },
+        { icon: "🚚", title: "التوصيل السريع", desc: "توصيل سريع في جميع أنحاء قطر، لأن البهارات الطازجة لا تنتظر." },
+        { icon: "🏡", title: "تراث منزلي", desc: "وصفات وأساليب متوارثة عبر أجيال من المطبخ القطري التقليدي." },
+        { icon: "❤️", title: "العميل أولاً", desc: "خمسة خطوط تواصل مباشرة ومتاحون يومياً من 8 صباحاً حتى 11 مساءً." },
+        { icon: "🇶🇦", title: "الحرفية القطرية", desc: "صُنع بفخر في قطر — احتفاءً بالهوية الطهوية المحلية وموروثها الثقافي." },
       ],
 
       ctaTitle: "هل أنت مستعد لتجربة الفرق؟",
-      ctaSub: "تسوق من مجموعتنا الكاملة أو تحدث مع خبراء البهارات لدينا على واتساب.",
+      ctaSub: "تسوق من مجموعتنا الكاملة أو تواصل معنا مباشرة على واتساب — متاحون يومياً.",
       ctaShop: "تسوق الآن",
       ctaChat: "تحدث على واتساب",
     },
@@ -386,17 +394,17 @@ export default function AboutPage() {
                     </div>
                     <div className="border-t border-white/10 pt-6">
                       <p className="text-white font-black text-lg mb-1">
-                        {isArabic ? "الصادق للبهارات" : "Al Sadeq Spices"}
+                        {isArabic ? "بهارات حمد المميزة" : "Hamad Special Spices"}
                       </p>
                       <p className="text-amber-400 text-sm">
-                        {isArabic ? "الدوحة، قطر — منذ 2018" : "Doha, Qatar — Est. 2018"}
+                        {isArabic ? "الدوحة، قطر — منذ 2010" : "Doha, Qatar — Est. 2010"}
                       </p>
                     </div>
                   </div>
 
                   {/* Floating accent card */}
                   <div className="absolute -bottom-6 -right-6 bg-amber-700 rounded-2xl p-5 shadow-xl">
-                    <p className="text-white font-black text-3xl">500+</p>
+                    <p className="text-white font-black text-3xl">{productCount ?? "—"}</p>
                     <p className="text-amber-200 text-xs mt-1">
                       {isArabic ? "منتج فاخر" : "Premium Products"}
                     </p>

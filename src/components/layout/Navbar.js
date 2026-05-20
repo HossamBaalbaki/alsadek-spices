@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCart } from "@/context/CartContext";
 import LanguageToggle from "@/components/ui/LanguageToggle";
@@ -112,18 +113,15 @@ export default function Navbar() {
           <div className="navbar-inner">
 
             {/* ─── LOGO ─────────────────────────── */}
-            <Link href="/" className="flex items-center gap-3 flex-shrink-0 group">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-200">
-                <span className="text-white text-base">🌶️</span>
-              </div>
-              <div className="flex flex-col leading-none">
-                <span className="font-black text-base text-stone-900 tracking-tight">
-                  {isArabic ? "الصادق" : "Al Sadeq"}
-                </span>
-                <span className="text-[10px] text-amber-700 font-bold tracking-[0.12em] uppercase mt-0.5">
-                  {isArabic ? "للبهارات" : "Spices"}
-                </span>
-              </div>
+            <Link href="/" className="flex items-center gap-2 flex-shrink-0 group">
+              <Image
+                src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_400/branding/alsadeq-logo-nobg"
+                alt="Al Sadeq Spices"
+                width={100}
+                height={100}
+                className="object-contain group-hover:scale-105 transition-transform duration-200"
+                priority
+              />
             </Link>
 
             {/* ─── DESKTOP NAV LINKS ─────────────────────────── */}

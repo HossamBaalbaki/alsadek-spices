@@ -147,11 +147,26 @@ export default function HomePage() {
 
           {/* Floating decorative spices */}
           <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-            <span className="absolute top-[14%] right-[8%]  text-[80px] opacity-10 animate-float-slow">🌶️</span>
             <span className="absolute top-[55%] right-[18%] text-[60px] opacity-10 animate-float-medium">🫙</span>
             <span className="absolute top-[28%] right-[32%] text-[44px] opacity-[0.06] animate-float-fast">🌿</span>
             <span className="absolute bottom-[18%] right-[6%]  text-[70px] opacity-[0.08] animate-float-medium">🎁</span>
             <span className="absolute bottom-[35%] left-[4%]  text-[50px] opacity-[0.05] animate-float-slow">⭐</span>
+          </div>
+
+          {/* Logo — floating visual, responsive */}
+          <div className="absolute pointer-events-none animate-float-slow
+            left-1/2 -translate-x-1/2 top-[5%]
+            lg:left-auto lg:translate-x-0 lg:right-[6%] lg:top-[15%]">
+            <Image
+              src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_500/branding/alsadeq-logo-nobg"
+              alt="Al Sadeq Spices"
+              width={280}
+              height={280}
+              className="object-contain w-[130px] h-[130px] lg:w-[280px] lg:h-[280px]
+                opacity-20 lg:opacity-40
+                drop-shadow-[0_0_40px_rgba(251,191,36,0.35)] drop-shadow-[0_0_80px_rgba(180,83,9,0.25)]"
+              priority
+            />
           </div>
 
           <div className="container relative z-10">

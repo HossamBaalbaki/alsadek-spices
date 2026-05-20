@@ -1,0 +1,3 @@
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS "workingHoursEn" TEXT NOT NULL DEFAULT 'Daily: 8:00 AM - 11:00 PM';
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS "workingHoursAr" TEXT NOT NULL DEFAULT 'يومياً: 8:00 صباحاً - 11:00 مساءً';
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS "whatsappNumber" TEXT NOT NULL DEFAULT '97466556393';

@@ -72,7 +72,7 @@
   --transition-slow: 350ms ease;
 
   /* Layout tokens */
-  --navbar-height: 70px;
+  --navbar-height: 90px;
   --mobile-nav-height: 64px;
   --page-bottom-desktop: 3rem;
   --page-bottom-mobile: 5rem;
@@ -475,7 +475,7 @@ select {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 70px;
+  height: 90px;
   gap: 1rem;
 }
 

@@ -189,7 +189,7 @@ export const translations = {
     // ─── FOOTER ───────────────────────────
     footer: {
       description:
-        "Premium quality spices delivered fresh to your door anywhere in Qatar.",
+        "Hamad Special Spices — premium Qatari spice blends crafted with homemade techniques since 2010. Operated by Al Sadeq Trading, Doha, Qatar.",
       quickLinks: "Quick Links",
       customerService: "Customer Service",
       followUs: "Follow Us",
@@ -202,8 +202,8 @@ export const translations = {
       madeWith: "Made with ❤️ in Qatar",
       deliveryInfo: "Delivery Information",
       contactUs: "Contact Us",
-      phone: "+974 XXXX XXXX",
-      email: "info@alsadek.qa",
+      phone: "+974 4443 6068",
+      email: "info@alsadeq.qa",
       address: "Doha, Qatar",
       workingHours: "Working Hours",
       hours: "Daily: 8:00 AM - 11:00 PM",
@@ -439,7 +439,7 @@ export const translations = {
     // ─── FOOTER ───────────────────────────
     footer: {
       description:
-        "بهارات فاخرة عالية الجودة تُوصل طازجة إلى بابك في أي مكان بقطر.",
+        "بهارات حمد المميزة — خلطات قطرية فاخرة بتقنيات منزلية أصيلة منذ عام 2010. تشغلها شركة الصادق للتجارة، الدوحة، قطر.",
       quickLinks: "روابط سريعة",
       customerService: "خدمة العملاء",
       followUs: "تابعنا",
@@ -452,8 +452,8 @@ export const translations = {
       madeWith: "صُنع بـ ❤️ في قطر",
       deliveryInfo: "معلومات التوصيل",
       contactUs: "اتصل بنا",
-      phone: "XXXX XXXX 974+",
-      email: "info@alsadek.qa",
+      phone: "+974 4443 6068",
+      email: "info@alsadeq.qa",
       address: "الدوحة، قطر",
       workingHours: "ساعات العمل",
       hours: "يومياً: 8:00 صباحاً - 11:00 مساءً",

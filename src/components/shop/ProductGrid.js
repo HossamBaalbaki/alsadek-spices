@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 import ProductCard from "@/components/shop/ProductCard";
 
@@ -43,7 +44,15 @@ function EmptyState() {
   return (
     <div className="empty-state col-span-full">
       {/* Icon */}
-      <div className="empty-state-icon">🌶️</div>
+      <div className="empty-state-icon flex justify-center">
+        <Image
+          src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_300/branding/alsadeq-logo-nobg"
+          alt="Al Sadeq Spices"
+          width={120}
+          height={120}
+          className="object-contain opacity-60"
+        />
+      </div>
 
       {/* Text */}
       <div className="text-center">

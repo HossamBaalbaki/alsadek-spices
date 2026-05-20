@@ -136,9 +136,12 @@ function ThermalReceipt({ order, onClose }) {
 
             {/* ── HEADER ── */}
             <div style={{ textAlign:"center", paddingBottom:"10px" }}>
-              <div style={{ fontSize:"22px", fontWeight:900, letterSpacing:"3px" }}>🌶️ AL SADEQ 🌶️</div>
-              <div style={{ fontSize:"15px", fontWeight:700, letterSpacing:"2px", marginTop:"3px", direction:"rtl" }}>الصادق للبهارات</div>
-              <div style={{ fontSize:"10px", color:"#777", marginTop:"3px" }}>Premium Spices · Qatar</div>
+              <img
+                src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_png,w_300/branding/alsadeq-logo-nobg"
+                alt="Al Sadeq Spices"
+                style={{ width:"100px", height:"100px", objectFit:"contain", margin:"0 auto 4px" }}
+              />
+              <div style={{ fontSize:"10px", color:"#777", marginTop:"2px" }}>Premium Spices · Qatar</div>
             </div>
 
             {dividerSolid}

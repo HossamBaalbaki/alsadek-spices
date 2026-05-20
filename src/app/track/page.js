@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -84,6 +85,15 @@ export default function TrackOrderPage() {
           </div>
           <div className="container relative py-14 md:py-20">
             <div className="max-w-2xl mx-auto text-center">
+              <div className="flex justify-center mb-5">
+                <Image
+                  src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_300/branding/alsadeq-logo-nobg"
+                  alt="Al Sadeq Spices"
+                  width={90}
+                  height={90}
+                  className="object-contain drop-shadow-[0_4px_16px_rgba(251,191,36,0.3)]"
+                />
+              </div>
               <div className="inline-flex items-center gap-2 bg-amber-700/20 border border-amber-700/30 rounded-full px-4 py-1.5 mb-5">
                 <span className="text-amber-400">📍</span>
                 <span className="text-amber-200 text-xs font-bold uppercase tracking-wider">

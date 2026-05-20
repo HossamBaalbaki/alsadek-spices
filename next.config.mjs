@@ -22,6 +22,7 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
       "connect-src 'self' https://api.cloudinary.com",
+      "frame-src https://maps.google.com https://www.google.com",
       "frame-ancestors 'none'",
     ].join("; "),
   },

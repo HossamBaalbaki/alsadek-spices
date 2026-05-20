@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import Navbar from "@/components/layout/Navbar";
@@ -56,7 +57,9 @@ function OrderConfirmationContent() {
   if (loading) {
     return (
       <div className="container py-20 text-center">
-        <div className="text-6xl animate-bounce mb-4">🌶️</div>
+        <div className="flex justify-center mb-4 animate-bounce">
+          <Image src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_300/branding/alsadeq-logo-nobg" alt="Al Sadeq Spices" width={80} height={80} className="object-contain" />
+        </div>
         <p className="text-stone-500">
           {isArabic ? "جاري التحميل..." : "Loading..."}
         </p>
@@ -131,6 +134,15 @@ function OrderConfirmationContent() {
       {/* ─── SUCCESS HEADER ─────────────────────────── */}
       <div className="bg-gradient-to-br from-green-600 to-green-700 py-16">
         <div className="container text-center">
+          <div className="flex justify-center mb-4">
+            <Image
+              src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_300/branding/alsadeq-logo-nobg"
+              alt="Al Sadeq Spices"
+              width={100}
+              height={100}
+              className="object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.2)]"
+            />
+          </div>
           <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -478,7 +490,9 @@ export default function OrderConfirmationPage() {
         <Suspense
           fallback={
             <div className="container py-20 text-center">
-              <div className="text-6xl animate-bounce mb-4">🌶️</div>
+              <div className="flex justify-center mb-4 animate-bounce">
+          <Image src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_300/branding/alsadeq-logo-nobg" alt="Al Sadeq Spices" width={80} height={80} className="object-contain" />
+        </div>
             </div>
           }
         >

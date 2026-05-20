@@ -303,6 +303,9 @@ model SiteSetting {
   freeDeliveryThreshold  Float    @default(200)
   tickerItemsEn  String[]
   tickerItemsAr  String[]
+  workingHoursEn  String   @default("Daily: 8:00 AM - 11:00 PM")
+  workingHoursAr  String   @default("يومياً: 8:00 صباحاً - 11:00 مساءً")
+  whatsappNumber  String   @default("97466556393")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 
 export default function AdminLayout({ children }) {
@@ -25,7 +26,15 @@ export default function AdminLayout({ children }) {
   if (pathname === "/admin/login") return <>{children}</>;
   if (!admin) return (
     <div className="min-h-screen bg-stone-900 flex items-center justify-center">
-      <div className="text-6xl animate-bounce">🌶️</div>
+      <div className="animate-pulse">
+        <Image
+          src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_200/branding/alsadeq-logo-nobg"
+          alt="Al Sadeq Spices"
+          width={100}
+          height={100}
+          className="object-contain"
+        />
+      </div>
     </div>
   );
 
@@ -66,7 +75,15 @@ export default function AdminLayout({ children }) {
 
         {/* Logo */}
         <div className="flex items-center gap-3 p-4 border-b border-stone-700 flex-shrink-0 min-w-[16rem]">
-          <span className="text-2xl flex-shrink-0">🌶️</span>
+          <div className="flex-shrink-0 bg-white rounded-xl p-1">
+            <Image
+              src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_200/branding/alsadeq-logo-nobg"
+              alt="Al Sadeq Spices"
+              width={44}
+              height={44}
+              className="object-contain"
+            />
+          </div>
           <div className="overflow-hidden">
             <p className="text-white font-black text-sm whitespace-nowrap">Al Sadeq</p>
             <p className="text-stone-400 text-xs whitespace-nowrap">Admin Panel</p>

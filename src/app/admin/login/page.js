@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -44,10 +45,16 @@ export default function AdminLoginPage() {
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="text-6xl mb-4">🌶️</div>
-          <h1 className="text-3xl font-black text-white mb-1">
-            Al Sadeq Spices
-          </h1>
+          <div className="flex justify-center mb-3">
+            <Image
+              src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_400/branding/alsadeq-logo-nobg"
+              alt="Al Sadeq Spices"
+              width={140}
+              height={140}
+              className="object-contain drop-shadow-[0_4px_24px_rgba(217,119,6,0.4)]"
+              priority
+            />
+          </div>
           <p className="text-stone-400">Admin Dashboard</p>
         </div>
 

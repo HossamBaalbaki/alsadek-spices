@@ -6,7 +6,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-const WHATSAPP_NUMBER = "97430000000"; // replace with real number
+const WHATSAPP_NUMBER = "97466556393";
 
 const INFO_CARDS = [
   {
@@ -17,9 +17,9 @@ const INFO_CARDS = [
     ),
     labelEn: "Phone",
     labelAr: "الهاتف",
-    valueEn: "+974 3000 0000",
-    valueAr: "٩٧٤ ٣٠٠٠ ٠٠٠٠+",
-    href: "tel:+97430000000",
+    valueEn: "+974 4443 6068",
+    valueAr: "+974 4443 6068",
+    href: "tel:+97444436068",
     color: "amber",
   },
   {
@@ -30,8 +30,8 @@ const INFO_CARDS = [
     ),
     labelEn: "WhatsApp",
     labelAr: "واتساب",
-    valueEn: "+974 3000 0000",
-    valueAr: "٩٧٤ ٣٠٠٠ ٠٠٠٠+",
+    valueEn: "+974 6655 6393",
+    valueAr: "+974 6655 6393",
     href: `https://wa.me/${WHATSAPP_NUMBER}`,
     color: "green",
   },
@@ -43,9 +43,22 @@ const INFO_CARDS = [
     ),
     labelEn: "Email",
     labelAr: "البريد الإلكتروني",
-    valueEn: "info@alsadek.qa",
-    valueAr: "info@alsadek.qa",
-    href: "mailto:info@alsadek.qa",
+    valueEn: "info@alsadeq.qa",
+    valueAr: "info@alsadeq.qa",
+    href: "mailto:info@alsadeq.qa",
+    color: "blue",
+  },
+  {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+    labelEn: "Email",
+    labelAr: "البريد الإلكتروني",
+    valueEn: "alsadeq_2000@yahoo.com",
+    valueAr: "alsadeq_2000@yahoo.com",
+    href: "mailto:alsadeq_2000@yahoo.com",
     color: "blue",
   },
   {
@@ -95,10 +108,10 @@ export default function ContactPage() {
       hero: "Get in Touch",
       heroSub: "We're here to help. Reach out and we'll get back to you as soon as possible.",
       hours: "Working Hours",
-      hoursSun: "Sunday – Thursday",
-      hoursSunVal: "9:00 AM – 8:00 PM",
-      hoursFri: "Friday – Saturday",
-      hoursFriVal: "2:00 PM – 10:00 PM",
+      hoursSun: "Every Day",
+      hoursSunVal: "8:00 AM – 11:00 PM",
+      hoursFri: "WhatsApp & Orders",
+      hoursFriVal: "Always Available",
       formTitle: "Send a Message",
       name: "Full Name",
       namePh: "Your name",
@@ -116,10 +129,10 @@ export default function ContactPage() {
       hero: "تواصل معنا",
       heroSub: "نحن هنا للمساعدة. تواصل معنا وسنرد عليك في أقرب وقت ممكن.",
       hours: "ساعات العمل",
-      hoursSun: "الأحد – الخميس",
-      hoursSunVal: "٩:٠٠ ص – ٨:٠٠ م",
-      hoursFri: "الجمعة – السبت",
-      hoursFriVal: "٢:٠٠ م – ١٠:٠٠ م",
+      hoursSun: "كل يوم",
+      hoursSunVal: "٨:٠٠ ص – ١١:٠٠ م",
+      hoursFri: "واتساب والطلبات",
+      hoursFriVal: "متاح دائماً",
       formTitle: "أرسل رسالة",
       name: "الاسم الكامل",
       namePh: "اسمك",
@@ -298,18 +311,30 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                {/* Map Placeholder */}
-                <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm flex-1 min-h-[220px]">
+                {/* Map */}
+                <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm flex-1 flex flex-col min-h-[220px]">
                   <iframe
                     title="Al Sadeq Spices Location"
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d462560.6828613893!2d51.20653!3d25.285447!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e45c534ffdce87f%3A0x3ad7e7b5c1a22c4!2sDoha%2C%20Qatar!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus"
+                    src="https://maps.google.com/maps?q=25.278255462646484,51.4930419921875&z=17&output=embed"
                     width="100%"
                     height="100%"
-                    style={{ border: 0, minHeight: 220 }}
+                    style={{ border: 0, minHeight: 220, flex: 1 }}
                     allowFullScreen=""
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                   />
+                  <a
+                    href="https://www.google.com/maps?q=25.278255462646484,51.4930419921875&z=17"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 py-3 bg-amber-700 hover:bg-amber-800 text-white text-sm font-bold transition-colors duration-200"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {isArabic ? "احصل على الاتجاهات" : "Get Directions"}
+                  </a>
                 </div>
               </div>
             </div>

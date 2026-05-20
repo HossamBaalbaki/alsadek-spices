@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function HeroBanner() {
@@ -144,9 +145,18 @@ export default function HeroBanner() {
               {/* Main Card */}
               <div className="bg-stone-800/80 backdrop-blur-sm border border-stone-700 rounded-3xl p-8 text-center shadow-2xl">
 
-                {/* Big Emoji */}
-                <div className="text-8xl mb-4 animate-bounce">
-                  🌶️
+                {/* Logo */}
+                <div className="flex justify-center mb-4 animate-bounce">
+                  <div className="bg-white/90 rounded-3xl p-3 shadow-2xl shadow-black/30">
+                    <Image
+                      src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_400/branding/alsadeq-logo-nobg"
+                      alt="Al Sadeq Spices"
+                      width={160}
+                      height={160}
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
                 </div>
 
                 {/* Title */}

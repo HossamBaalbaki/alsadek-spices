@@ -14,6 +14,9 @@ const DEFAULT_SETTINGS = {
   freeDeliveryThreshold: 200,
   tickerItemsEn: ["🌶️ 100% Natural Spices", "🚚 Same-Day Delivery in Doha", "⭐ Premium Quality Guaranteed", "💰 Best Prices in Qatar", "🎁 Elegant Gift Bundles", "📦 Professional Packaging"],
   tickerItemsAr: ["🌶️ بهارات طبيعية 100%", "🚚 توصيل في نفس اليوم بالدوحة", "⭐ جودة فاخرة مضمونة", "💰 أفضل الأسعار في قطر", "🎁 باقات هدايا راقية", "📦 تغليف احترافي"],
+  workingHoursEn: "Daily: 8:00 AM - 11:00 PM",
+  workingHoursAr: "يومياً: 8:00 صباحاً - 11:00 مساءً",
+  whatsappNumber: "97466556393",
 };
 
 export async function GET() {

@@ -117,7 +117,7 @@ export default function HomePage() {
   ) || (isArabic ? [...defaultTickerAr] : [...defaultTickerEn]);
 
   const whatsappNumber =
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "";
+    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "97466556393";
 
   return (
     <>

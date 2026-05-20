@@ -175,11 +175,11 @@ export default function ContactPage() {
         <section className="bg-white border-b border-stone-100 py-10">
           <div className="container">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {INFO_CARDS.map((card) => {
+              {INFO_CARDS.map((card, idx) => {
                 const c = COLOR_MAP[card.color];
                 return (
                   <a
-                    key={card.labelEn}
+                    key={card.href + idx}
                     href={card.href}
                     target={card.href.startsWith("http") ? "_blank" : undefined}
                     rel="noopener noreferrer"

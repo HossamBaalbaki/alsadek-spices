@@ -73,7 +73,7 @@ function Reveal({ children, className = "", direction = "up", delay = 0 }) {
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function AboutPage() {
   const { isArabic } = useLanguage();
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "";
+  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "97466556393";
   const [productCount, setProductCount] = useState(null);
 
   useEffect(() => {

@@ -434,9 +434,9 @@ export default function ProductPage() {
                   </button>
                 )}
 
-                {process.env.NEXT_PUBLIC_WHATSAPP_NUMBER && (
+                {true && (
                   <a
-                    href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+                    href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "97466556393"}?text=${encodeURIComponent(
                       isArabic ? `مرحباً، أريد طلب: ${productName}` : `Hello, I want to order: ${productName}`
                     )}`}
                     target="_blank"

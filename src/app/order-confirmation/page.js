@@ -362,7 +362,7 @@ function OrderConfirmationContent() {
           <div className="flex flex-col gap-4">
 
             {/* WhatsApp */}
-            {process.env.NEXT_PUBLIC_WHATSAPP_NUMBER && (
+            {(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "97466556393") && (
             <div className="bg-[#25d366] rounded-2xl p-5 text-white">
               <div className="flex items-center gap-3 mb-3">
                 <svg
@@ -383,7 +383,7 @@ function OrderConfirmationContent() {
                 </div>
               </div>
               <a
-                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+                href={`https://wa.me/${(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "97466556393")}?text=${encodeURIComponent(
                   isArabic
                     ? `مرحباً، لدي طلب جديد:\nرقم الطلب: ${order.orderNumber}\nالإجمالي: ${order.grandTotal.toFixed(2)} ر.ق`
                     : `Hello, I have a new order:\nOrder Number: ${order.orderNumber}\nTotal: ${order.grandTotal.toFixed(2)} QAR`
@@ -447,13 +447,13 @@ function OrderConfirmationContent() {
             </div>
 
             {/* Need Help */}
-            {process.env.NEXT_PUBLIC_WHATSAPP_NUMBER && (
+            {(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "97466556393") && (
             <div className="bg-white rounded-2xl border border-stone-200 p-5 text-center">
               <p className="text-stone-600 text-sm mb-3">
                 {isArabic ? "هل تحتاج مساعدة؟" : "Need help with your order?"}
               </p>
               <a
-                href={`tel:+${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}`}
+                href={`tel:+${(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "97466556393")}`}
                 className="btn btn-outline btn-full justify-center"
               >
                 {isArabic ? "اتصل بنا" : "Call Us"}

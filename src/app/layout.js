@@ -47,8 +47,12 @@ export const metadata = {
     googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png",    type: "image/png", sizes: "512x512" },
+    ],
     shortcut: "/favicon.ico",
+    apple: "/icon.png",
   },
   openGraph: {
     type: "website",

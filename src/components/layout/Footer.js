@@ -310,7 +310,7 @@ export default function Footer() {
             {/* Powered by */}
             <p className="text-xs text-stone-600">
               Powered by{" "}
-              <span className="text-stone-500 font-semibold">LebConnect</span>
+              <span className="text-stone-500 font-semibold">Vrentax</span>
               <span className="text-stone-700 mx-1.5">·</span>
               <a
                 href="tel:+97466365795"

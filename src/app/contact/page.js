@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import Navbar from "@/components/layout/Navbar";
@@ -17,9 +17,9 @@ const INFO_CARDS = [
     ),
     labelEn: "Phone",
     labelAr: "الهاتف",
-    valueEn: "+974 4443 6068",
-    valueAr: "+974 4443 6068",
-    href: "tel:+97444436068",
+    valueEn: "+974 7788 1088",
+    valueAr: "+974 7788 1088",
+    href: "tel:+97477881088",
     color: "amber",
   },
   {
@@ -89,6 +89,18 @@ export default function ContactPage() {
 
   const [form, setForm] = useState({ name: "", phone: "", subject: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
+  const [workingHours, setWorkingHours] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/site-settings")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.data?.workingHoursEn) {
+          setWorkingHours({ en: d.data.workingHoursEn, ar: d.data.workingHoursAr });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleChange = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
@@ -302,7 +314,9 @@ export default function ContactPage() {
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between py-3 border-b border-stone-100">
                       <span className="text-sm font-semibold text-stone-700">{tx.hoursSun}</span>
-                      <span className="text-sm font-bold text-amber-700">{tx.hoursSunVal}</span>
+                      <span className="text-sm font-bold text-amber-700">
+                        {workingHours ? (isArabic ? workingHours.ar : workingHours.en) : tx.hoursSunVal}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between py-3">
                       <span className="text-sm font-semibold text-stone-700">{tx.hoursFri}</span>

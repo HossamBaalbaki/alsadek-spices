@@ -313,13 +313,20 @@ export default function Footer() {
       </div>
 
       {/* ─── BOTTOM BAR — payment + copyright merged ─────────────────────────── */}
-      <div className="border-t border-stone-800 py-8">
+      <div className="border-t border-stone-800 py-8 pb-[calc(2rem+var(--mobile-nav-height,0px))] sm:pb-8">
         <div className="container">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             {/* Powered by */}
             <p className="text-xs text-stone-600">
               Powered by{" "}
-              <span className="text-stone-500 font-semibold">Vrentax</span>
+              <a
+                href="https://vrentax.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-stone-500 font-semibold hover:text-stone-300 transition-colors duration-200"
+              >
+                Vrentax
+              </a>
               <span className="text-stone-700 mx-1.5">·</span>
               <a
                 href="tel:+97466365795"

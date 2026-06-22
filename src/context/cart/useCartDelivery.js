@@ -73,7 +73,7 @@ export function useCartDelivery(subtotal, promoCode) {
   const deliveryFee = () => {
     if (!selectedZone) return 0;
     if (promoCode?.type === "free_delivery") return 0;
-    if (subtotal >= FREE_DELIVERY_THRESHOLD) return 0;
+    if (freeDeliveryEnabled && subtotal >= FREE_DELIVERY_THRESHOLD) return 0;
     return Number(selectedZone.price) || 0;
   };
 

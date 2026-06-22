@@ -149,6 +149,25 @@ export default function AdminDeliverySettingsPage() {
     }
   };
 
+  const deleteZone = async (id) => {
+    if (!window.confirm("Delete this delivery zone? This cannot be undone.")) return;
+    try {
+      const token = localStorage.getItem("adminToken");
+      const res = await fetch(`/api/admin/delivery-zones/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || "Delete failed");
+      setZones((prev) => prev.filter((z) => z.id !== id));
+      setMessage("Zone deleted");
+      setTimeout(() => setMessage(""), 1400);
+    } catch (e) {
+      console.error(e);
+      setMessage("Failed to delete zone");
+    }
+  };
+
   const updateLocalZone = (id, field, value) => {
     setZones((prev) =>
       prev.map((z) => (z.id === id ? { ...z, [field]: value } : z))
@@ -308,12 +327,13 @@ export default function AdminDeliverySettingsPage() {
                   <th className="text-left py-3 px-4 text-xs uppercase text-stone-500">Time AR</th>
                   <th className="text-left py-3 px-4 text-xs uppercase text-stone-500">Price (QAR)</th>
                   <th className="text-left py-3 px-4 text-xs uppercase text-stone-500">Active</th>
+                  <th className="py-3 px-4 text-xs uppercase text-stone-500"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
                 {zones.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="py-8 px-4 text-center text-sm text-stone-500">
+                    <td colSpan={8} className="py-8 px-4 text-center text-sm text-stone-500">
                       No delivery zones found. Add a zone above or click Refresh.
                     </td>
                   </tr>
@@ -401,6 +421,17 @@ export default function AdminDeliverySettingsPage() {
                             zone.active ? "translate-x-6" : "translate-x-1"
                           }`}
                         />
+                      </button>
+                    </td>
+                    <td className="py-3 px-4">
+                      <button
+                        onClick={() => deleteZone(zone.id)}
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 transition-colors"
+                        title="Delete zone"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
                       </button>
                     </td>
                   </tr>

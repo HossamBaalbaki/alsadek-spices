@@ -2,6 +2,25 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAdmin } from "@/lib/adminAuth";
 
+export async function DELETE(request, context) {
+  try {
+    const auth = verifyAdmin(request);
+    if (!auth) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+
+    const { id } = await context.params;
+    const zoneId = Number(id);
+    if (!Number.isInteger(zoneId) || zoneId <= 0) {
+      return NextResponse.json({ success: false, message: "Invalid delivery zone id" }, { status: 400 });
+    }
+
+    await prisma.deliveryZone.delete({ where: { id: zoneId } });
+    return NextResponse.json({ success: true, message: "Delivery zone deleted" });
+  } catch (error) {
+    console.error("DELETE /api/admin/delivery-zones/[id] error:", error);
+    return NextResponse.json({ success: false, message: "Failed to delete delivery zone" }, { status: 500 });
+  }
+}
+
 export async function PUT(request, context) {
   try {
     const auth = verifyAdmin(request);

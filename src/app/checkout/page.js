@@ -21,6 +21,7 @@ export default function CheckoutPage() {
     setSelectedZone,
     deliveryZones,
     FREE_DELIVERY_THRESHOLD,
+    freeDeliveryEnabled,
     promoCode: appliedPromo,
     clearCart,
   } = useCart();
@@ -429,7 +430,7 @@ export default function CheckoutPage() {
                             <p className="font-bold text-stone-800 text-sm">{isArabic ? zone.nameAr : zone.nameEn}</p>
                             <p className="text-xs text-stone-400 mt-0.5">{isArabic ? zone.estimatedTimeAr : zone.estimatedTime}</p>
                             <p className="text-sm font-black text-amber-700 mt-1">
-                              {subtotal >= FREE_DELIVERY_THRESHOLD
+                              {freeDeliveryEnabled && subtotal >= FREE_DELIVERY_THRESHOLD
                                 ? isArabic ? "مجاني 🎉" : "Free 🎉"
                                 : `${zone.price} ${t.general.qar}`}
                             </p>

@@ -15,8 +15,8 @@ const DEFAULTS = {
   whatsappNumber: "97466556393",
 };
 
-const DEFAULT_TICKER_EN = ["🌶️ 100% Natural Spices", "🚚 Same-Day Delivery in Doha", "⭐ Premium Quality Guaranteed", "💰 Best Prices in Qatar", "🎁 Elegant Gift Bundles", "📦 Professional Packaging"];
-const DEFAULT_TICKER_AR = ["🌶️ بهارات طبيعية 100%", "🚚 توصيل في نفس اليوم بالدوحة", "⭐ جودة فاخرة مضمونة", "💰 أفضل الأسعار في قطر", "🎁 باقات هدايا راقية", "📦 تغليف احترافي"];
+const DEFAULT_TICKER_EN = ["🌶️ 100% Natural Spices", "🚚 Next-Day Delivery in Doha", "⭐ Premium Quality Guaranteed", "💰 Best Prices in Qatar", "🎁 Elegant Gift Bundles", "📦 Professional Packaging"];
+const DEFAULT_TICKER_AR = ["🌶️ بهارات طبيعية 100%", "🚚 توصيل في اليوم التالي بالدوحة", "⭐ جودة فاخرة مضمونة", "💰 أفضل الأسعار في قطر", "🎁 باقات هدايا راقية", "📦 تغليف احترافي"];
 
 export default function AdminSettingsPage() {
   const [form, setForm] = useState({
@@ -176,7 +176,7 @@ export default function AdminSettingsPage() {
                 className="input w-full min-h-[160px] font-mono text-sm"
                 value={form.tickerItemsEn}
                 onChange={(e) => onChange("tickerItemsEn", e.target.value)}
-                placeholder={"🌶️ 100% Natural Spices\n🚚 Same-Day Delivery in Doha"}
+                placeholder={"🌶️ 100% Natural Spices\n🚚 Next-Day Delivery in Doha"}
               />
             </div>
             <div>
@@ -186,7 +186,7 @@ export default function AdminSettingsPage() {
                 className="input w-full min-h-[160px] font-mono text-sm"
                 value={form.tickerItemsAr}
                 onChange={(e) => onChange("tickerItemsAr", e.target.value)}
-                placeholder={"🌶️ بهارات طبيعية 100%\n🚚 توصيل في نفس اليوم بالدوحة"}
+                placeholder={"🌶️ بهارات طبيعية 100%\n🚚 توصيل في اليوم التالي بالدوحة"}
               />
             </div>
           </div>

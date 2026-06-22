@@ -464,8 +464,8 @@ export default function ProductPage() {
                     icon: "🚚",
                     textEn: "Fast Delivery",
                     textAr: "توصيل سريع",
-                    subEn: "Same day in Doha",
-                    subAr: "نفس اليوم بالدوحة",
+                    subEn: "Next day in Doha",
+                    subAr: "اليوم التالي بالدوحة",
                   },
                   {
                     icon: "💯",

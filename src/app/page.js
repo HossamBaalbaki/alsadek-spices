@@ -108,8 +108,8 @@ export default function HomePage() {
   useEffect(() => { fetchHomeData(); }, [fetchHomeData]);
   usePolling(() => fetchHomeData(true), 30000);
 
-  const defaultTickerEn = ["🌶️ 100% Natural Spices", "🚚 Same-Day Delivery in Doha", "⭐ Premium Quality Guaranteed", "💰 Best Prices in Qatar", "🎁 Elegant Gift Bundles", "📦 Professional Packaging"];
-  const defaultTickerAr = ["🌶️ بهارات طبيعية 100%", "🚚 توصيل في نفس اليوم بالدوحة", "⭐ جودة فاخرة مضمونة", "💰 أفضل الأسعار في قطر", "🎁 باقات هدايا راقية", "📦 تغليف احترافي"];
+  const defaultTickerEn = ["🌶️ 100% Natural Spices", "🚚 Next-Day Delivery in Doha", "⭐ Premium Quality Guaranteed", "💰 Best Prices in Qatar", "🎁 Elegant Gift Bundles", "📦 Professional Packaging"];
+  const defaultTickerAr = ["🌶️ بهارات طبيعية 100%", "🚚 توصيل في اليوم التالي بالدوحة", "⭐ جودة فاخرة مضمونة", "💰 أفضل الأسعار في قطر", "🎁 باقات هدايا راقية", "📦 تغليف احترافي"];
 
   const tickerItems = (isArabic
     ? siteSettings?.tickerItemsAr
@@ -424,8 +424,8 @@ export default function HomePage() {
                 },
                 {
                   icon: "🚚",
-                  en: { title: "Same-Day Delivery", desc: "Order by noon, get it today in Doha" },
-                  ar: { title: "توصيل في اليوم", desc: "اطلب قبل الظهر وسنوصل لك اليوم" },
+                  en: { title: "Next-Day Delivery", desc: "Order by noon, delivered the next day in Doha" },
+                  ar: { title: "توصيل في اليوم التالي", desc: "اطلب قبل الظهر وسنوصل لك في اليوم التالي" },
                 },
                 {
                   icon: "⭐",

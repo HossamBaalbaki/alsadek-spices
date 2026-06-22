@@ -109,8 +109,8 @@ export default function FeaturedProducts() {
               icon: "🚚",
               titleEn: "Fast Delivery",
               titleAr: "توصيل سريع",
-              descEn: "Same day in Doha",
-              descAr: "نفس اليوم في الدوحة",
+              descEn: "Next day in Doha",
+              descAr: "اليوم التالي في الدوحة",
             },
             {
               icon: "💯",

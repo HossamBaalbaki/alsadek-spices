@@ -32,11 +32,11 @@ export default function FAQPage() {
     ? [
         {
           question: "كم يستغرق التوصيل؟",
-          answer: "يتم التوصيل في نفس اليوم أو في غضون 24 ساعة لمعظم مناطق قطر. ستجد الوقت التقديري عند اختيار منطقتك في صفحة الدفع.",
+          answer: "يتم التوصيل في اليوم التالي لمعظم مناطق قطر. اطلب قبل الظهر وسيصلك طلبك في اليوم التالي. ستجد الوقت التقديري عند اختيار منطقتك في صفحة الدفع.",
         },
         {
           question: "ما هي طرق الدفع المتاحة؟",
-          answer: "نقبل الدفع نقداً عند الاستلام، وبطاقات الفيزا والماستركارد، وApple Pay.",
+          answer: "نقبل الدفع نقداً عند الاستلام فقط.",
         },
         {
           question: "هل يمكنني تعديل طلبي بعد تقديمه؟",
@@ -58,11 +58,11 @@ export default function FAQPage() {
     : [
         {
           question: "How long does delivery take?",
-          answer: "Delivery is same-day or within 24 hours for most areas in Qatar. You will see an estimated delivery time when selecting your zone at checkout.",
+          answer: "Delivery is next-day for most areas in Qatar. Order by noon and your order will be delivered the following day. You will see an estimated delivery time when selecting your zone at checkout.",
         },
         {
           question: "What payment methods do you accept?",
-          answer: "We accept cash on delivery, Visa, Mastercard, and Apple Pay.",
+          answer: "We accept cash on delivery only.",
         },
         {
           question: "Can I modify my order after placing it?",

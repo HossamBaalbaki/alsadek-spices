@@ -16,6 +16,7 @@ export function useCartDelivery(subtotal, promoCode) {
   });
   const [dynamicZones, setDynamicZones] = useState([]);
   const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState(DEFAULT_FREE_DELIVERY_THRESHOLD);
+  const [freeDeliveryEnabled, setFreeDeliveryEnabled] = useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -37,6 +38,7 @@ export function useCartDelivery(subtotal, promoCode) {
             ? threshold
             : DEFAULT_FREE_DELIVERY_THRESHOLD
         );
+        setFreeDeliveryEnabled(settingsData?.data?.freeDeliveryEnabled !== false);
 
         const zones = Array.isArray(zonesData?.data)
           ? zonesData.data.filter((z) => z.active)
@@ -85,6 +87,7 @@ export function useCartDelivery(subtotal, promoCode) {
     deliveryFee,
     amountToFreeDelivery,
     freeDeliveryProgress,
+    freeDeliveryEnabled,
     FREE_DELIVERY_THRESHOLD,
     clearDelivery: () => setSelectedZone(null),
   };

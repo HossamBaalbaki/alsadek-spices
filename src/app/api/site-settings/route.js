@@ -12,6 +12,7 @@ const DEFAULT_SETTINGS = {
   promoPercent: 10,
   promoActive: true,
   freeDeliveryThreshold: 200,
+  freeDeliveryEnabled: true,
   tickerItemsEn: ["🌶️ 100% Natural Spices", "🚚 Next-Day Delivery in Doha", "⭐ Premium Quality Guaranteed", "💰 Best Prices in Qatar", "🎁 Elegant Gift Bundles", "📦 Professional Packaging"],
   tickerItemsAr: ["🌶️ بهارات طبيعية 100%", "🚚 توصيل في اليوم التالي بالدوحة", "⭐ جودة فاخرة مضمونة", "💰 أفضل الأسعار في قطر", "🎁 باقات هدايا راقية", "📦 تغليف احترافي"],
   workingHoursEn: "Daily: 8:00 AM - 11:00 PM",

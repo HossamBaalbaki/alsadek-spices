@@ -20,7 +20,7 @@ export function CartProvider({ children }) {
   const {
     selectedZone, setSelectedZone, deliveryZones: dynamicZones,
     deliveryFee, amountToFreeDelivery, freeDeliveryProgress,
-    FREE_DELIVERY_THRESHOLD, clearDelivery,
+    freeDeliveryEnabled, FREE_DELIVERY_THRESHOLD, clearDelivery,
   } = useCartDelivery(subtotal, promoCode);
 
   const clearCart = () => {
@@ -52,6 +52,7 @@ export function CartProvider({ children }) {
     grandTotal,
     amountToFreeDelivery,
     freeDeliveryProgress,
+    freeDeliveryEnabled,
     FREE_DELIVERY_THRESHOLD,
     notification,
     showNotification,
@@ -59,7 +60,7 @@ export function CartProvider({ children }) {
     triggerFly,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [cartItems, cartCount, subtotal, grandTotal, promoCode, promoError, promoSuccess,
-      selectedZone, dynamicZones, notification, flyEvents, amountToFreeDelivery, freeDeliveryProgress]);
+      selectedZone, dynamicZones, notification, flyEvents, amountToFreeDelivery, freeDeliveryProgress, freeDeliveryEnabled]);
 
   return (
     <CartContext.Provider value={value}>

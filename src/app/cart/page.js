@@ -21,6 +21,7 @@ export default function CartPage() {
     grandTotal,
     amountToFreeDelivery,
     freeDeliveryProgress,
+    freeDeliveryEnabled,
     FREE_DELIVERY_THRESHOLD,
     updateQuantity,
     removeFromCart,
@@ -122,7 +123,7 @@ export default function CartPage() {
             <div className="lg:col-span-2 flex flex-col gap-4">
 
               {/* ─── FREE DELIVERY PROGRESS ─────────────────────────── */}
-              {amountToFreeDelivery > 0 ? (
+              {freeDeliveryEnabled && (amountToFreeDelivery > 0 ? (
                 <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm font-semibold text-amber-800">
@@ -151,7 +152,7 @@ export default function CartPage() {
                       : "Congratulations! You qualify for free delivery"}
                   </p>
                 </div>
-              )}
+              ))}
 
               {/* ─── CART ITEMS LIST ─────────────────────────── */}
               <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden">
@@ -425,7 +426,7 @@ export default function CartPage() {
                 </div>
 
                 {/* Free Delivery Progress */}
-                {amountToFreeDelivery > 0 && (
+                {freeDeliveryEnabled && amountToFreeDelivery > 0 && (
                   <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
                     <div className="flex justify-between text-xs font-semibold text-amber-800 mb-2">
                       <span>{isArabic ? "التوصيل المجاني" : "Free Delivery"}</span>

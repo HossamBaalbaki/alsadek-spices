@@ -301,6 +301,7 @@ model SiteSetting {
   promoPercent           Float    @default(10)
   promoActive            Boolean  @default(true)
   freeDeliveryThreshold  Float    @default(200)
+  freeDeliveryEnabled    Boolean  @default(true)
   tickerItemsEn  String[]
   tickerItemsAr  String[]
   workingHoursEn  String   @default("Daily: 8:00 AM - 11:00 PM")

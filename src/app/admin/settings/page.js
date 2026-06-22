@@ -10,6 +10,7 @@ const DEFAULTS = {
   promoSubtitleEn: "Shop our premium spices collection",
   promoSubtitleAr: "تسوق مجموعتنا من البهارات الفاخرة",
   freeDeliveryThreshold: 200,
+  freeDeliveryEnabled: true,
   workingHoursEn: "Daily: 8:00 AM - 11:00 PM",
   workingHoursAr: "يومياً: 8:00 صباحاً - 11:00 مساءً",
   whatsappNumber: "97466556393",
@@ -50,6 +51,7 @@ export default function AdminSettingsPage() {
           promoSubtitleEn: data.data?.promoSubtitleEn || DEFAULTS.promoSubtitleEn,
           promoSubtitleAr: data.data?.promoSubtitleAr || DEFAULTS.promoSubtitleAr,
           freeDeliveryThreshold: Number(data.data?.freeDeliveryThreshold ?? DEFAULTS.freeDeliveryThreshold),
+          freeDeliveryEnabled: data.data?.freeDeliveryEnabled !== false,
           tickerItemsEn: (data.data?.tickerItemsEn?.length ? data.data.tickerItemsEn : DEFAULT_TICKER_EN).join("\n"),
           tickerItemsAr: (data.data?.tickerItemsAr?.length ? data.data.tickerItemsAr : DEFAULT_TICKER_AR).join("\n"),
           workingHoursEn: data.data?.workingHoursEn || DEFAULTS.workingHoursEn,
@@ -195,15 +197,45 @@ export default function AdminSettingsPage() {
         {/* Delivery Settings */}
         <div>
           <h3 className="font-bold text-stone-800 mb-3">Delivery Settings</h3>
-          <div className="max-w-sm">
-            <label className="block text-sm font-semibold text-stone-700 mb-2">Free Delivery Threshold (QAR)</label>
-            <input
-              type="number"
-              min="0"
-              className="input w-full"
-              value={form.freeDeliveryThreshold}
-              onChange={(e) => onChange("freeDeliveryThreshold", Number(e.target.value))}
-            />
+          <div className="flex flex-col gap-4 max-w-sm">
+            {/* Free Delivery Toggle */}
+            <div className="flex items-center justify-between p-4 rounded-xl border border-stone-200 bg-stone-50">
+              <div>
+                <p className="text-sm font-semibold text-stone-800">Free Delivery</p>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  {form.freeDeliveryEnabled
+                    ? "Progress bar shown in cart & checkout"
+                    : "Hidden — no free delivery bar shown"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onChange("freeDeliveryEnabled", !form.freeDeliveryEnabled)}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                  form.freeDeliveryEnabled ? "bg-amber-600" : "bg-stone-300"
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ${
+                    form.freeDeliveryEnabled ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Threshold — only relevant when enabled */}
+            {form.freeDeliveryEnabled && (
+              <div>
+                <label className="block text-sm font-semibold text-stone-700 mb-2">Free Delivery Threshold (QAR)</label>
+                <input
+                  type="number"
+                  min="0"
+                  className="input w-full"
+                  value={form.freeDeliveryThreshold}
+                  onChange={(e) => onChange("freeDeliveryThreshold", Number(e.target.value))}
+                />
+              </div>
+            )}
           </div>
         </div>
 

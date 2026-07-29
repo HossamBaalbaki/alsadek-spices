@@ -131,6 +131,18 @@ function ProductCard({ product, rank, priority = false }) {
   const productName = getName(product);
   const imageSrc = product?.images?.[0]?.trim();
 
+  // Every variant's price must be visible up front (on the pill itself) — never
+  // anchor on the first/selected variant's price alone, since switching variants
+  // then makes the headline number appear to "change" on the customer.
+  const variantPrices = safeVariants
+    .map((v) => getVariantPrice(v))
+    .filter((p) => p > 0);
+  const minVariantPrice = variantPrices.length ? Math.min(...variantPrices) : 0;
+  const hasPriceRange =
+    product?.type === "single" &&
+    variantPrices.length > 1 &&
+    Math.max(...variantPrices) !== minVariantPrice;
+
   return (
     <Link href={`/product/${product?.slug}`}>
       <div className={`product-card h-full flex flex-col ${soldOut ? "sold-out" : ""}`}>
@@ -190,6 +202,7 @@ function ProductCard({ product, rank, priority = false }) {
                 const key = `${product?.id}-${label}-${index}`;
                 const selectedLabel = getVariantLabel(selectedVariant);
                 const isSelected = selectedLabel === label;
+                const variantPrice = getVariantPrice(variant);
 
                 return (
                   <button
@@ -204,6 +217,9 @@ function ProductCard({ product, rank, priority = false }) {
                     }`}
                   >
                     {label}
+                    <span className="weight-option-price">
+                      · {variantPrice.toFixed(2)} {t.general.qar}
+                    </span>
                   </button>
                 );
               })}
@@ -225,7 +241,12 @@ function ProductCard({ product, rank, priority = false }) {
 
           <div className="flex items-center gap-2 mt-auto">
             <span className={`font-bold text-base ${safeLabels.isSale ? "price-discounted" : "text-stone-800"}`}>
-              {Number(displayPrice || 0).toFixed(2)}{" "}
+              {hasPriceRange && (
+                <span className="text-xs font-semibold opacity-70">
+                  {t.product.priceFrom}{" "}
+                </span>
+              )}
+              {Number(hasPriceRange ? minVariantPrice : displayPrice || 0).toFixed(2)}{" "}
               <span className="text-xs font-semibold opacity-70">
                 {t.general.qar}
               </span>

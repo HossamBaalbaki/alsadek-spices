@@ -325,51 +325,66 @@ export default function ProductPage() {
 
               <div className="divider" />
 
-              <div className="flex items-end gap-3">
-                <span className="text-4xl font-black text-stone-900">
-                  {Number(finalPrice).toFixed(2)}
-                  <span className="text-lg font-semibold text-stone-500 ml-1">{t.general.qar}</span>
-                </span>
-                {originalPrice && originalPrice !== finalPrice && (
-                  <span className="text-xl text-stone-400 line-through mb-1">
-                    {Number(originalPrice).toFixed(2)} {t.general.qar}
+              {product.type === "single" && safeVariants.length > 0 ? (
+                // All variant prices are shown up front in this list — never anchor on a single
+                // "selected" variant's price above it, since switching selection would then make
+                // that headline number appear to jump/change on the customer.
+                <div>
+                  <p className="text-sm font-bold text-stone-700 mb-3">{t.product.selectWeight}</p>
+                  <div className="variant-price-list">
+                    {safeVariants.map((variant, index) => {
+                      const vLabel = getVariantLabel(variant);
+                      const isSelected = getVariantLabel(selectedVariant) === vLabel;
+                      const vPrice = getVariantPriceNumber(variant);
+                      const vOriginal = Number(variant?.originalPrice);
+                      const hasDiscount =
+                        safeLabels.isSale && Number.isFinite(vOriginal) && vOriginal > 0 && vOriginal !== vPrice;
+                      const outOfStock =
+                        Number(variant?.available) === 0 ||
+                        variant?.available === false ||
+                        Number(variant?.stock) === 0;
+                      return (
+                        <button
+                          key={`${vLabel}-${index}`}
+                          onClick={() => setSelectedVariant(variant)}
+                          className={`variant-price-row ${isSelected ? "selected" : ""} ${outOfStock ? "out-of-stock" : ""}`}
+                        >
+                          <span className="variant-radio" />
+                          <span className="variant-label">{vLabel}</span>
+                          <span className="variant-price-value">
+                            {hasDiscount && (
+                              <span className="price-original">
+                                {vOriginal.toFixed(2)} {t.general.qar}
+                              </span>
+                            )}
+                            <span className={hasDiscount ? "price-discounted" : ""}>
+                              {vPrice.toFixed(2)} {t.general.qar}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-end gap-3">
+                  <span className="text-4xl font-black text-stone-900">
+                    {Number(finalPrice).toFixed(2)}
+                    <span className="text-lg font-semibold text-stone-500 ml-1">{t.general.qar}</span>
                   </span>
-                )}
-              </div>
+                  {originalPrice && originalPrice !== finalPrice && (
+                    <span className="text-xl text-stone-400 line-through mb-1">
+                      {Number(originalPrice).toFixed(2)} {t.general.qar}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {product.type === "bundle" && product.originalPrice && (
                 <SavingsBadge originalPrice={Number(product.originalPrice)} currentPrice={Number(product.price || 0)} />
               )}
 
               <div className="divider" />
-
-              {product.type === "single" && safeVariants.length > 0 && (
-                <div>
-                  <p className="text-sm font-bold text-stone-700 mb-3">{t.product.selectWeight}</p>
-                  <div className="weight-options">
-                    {safeVariants.map((variant, index) => {
-                      const vLabel = getVariantLabel(variant);
-                      const isSelected =
-                        getVariantLabel(selectedVariant) === vLabel;
-                      return (
-                        <button
-                          key={`${vLabel}-${index}`}
-                          onClick={() => setSelectedVariant(variant)}
-                          className={`weight-option ${isSelected ? "selected" : ""} ${
-                            Number(variant?.available) === 0 ||
-                            variant?.available === false ||
-                            Number(variant?.stock) === 0
-                              ? "out-of-stock"
-                              : ""
-                          }`}
-                        >
-                          {vLabel}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
 
               {product.type === "bundle" && Array.isArray(product.bundleItems) && (
                 <div>

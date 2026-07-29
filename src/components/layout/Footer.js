@@ -199,8 +199,9 @@ export default function Footer() {
                   </p>
                   <a
                     href={`tel:${t.footer.phone}`}
-                    className="text-sm text-stone-300 hover:text-amber-400 transition-colors"
-                                      >
+                    dir="ltr"
+                    className="text-sm text-stone-300 hover:text-amber-400 transition-colors inline-block"
+                  >
                     {t.footer.phone}
                   </a>
                 </div>
@@ -330,7 +331,8 @@ export default function Footer() {
               <span className="text-stone-700 mx-1.5">·</span>
               <a
                 href="tel:+97466365795"
-                className="text-stone-500 hover:text-stone-400 transition-colors duration-200"
+                dir="ltr"
+                className="text-stone-500 hover:text-stone-400 transition-colors duration-200 inline-block"
               >
                 +974 66 36 57 95
               </a>

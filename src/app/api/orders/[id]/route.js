@@ -65,7 +65,7 @@ export async function PATCH(request, context) {
   try {
     const { id } = await context.params;
     const body = await request.json();
-    const { status, paymentStatus } = body;
+    const { status, paymentStatus, paymentMethod } = body;
 
     const validStatuses = [
       "pending",
@@ -79,6 +79,14 @@ export async function PATCH(request, context) {
     if (status && !validStatuses.includes(status)) {
       return NextResponse.json(
         { success: false, message: "Invalid status" },
+        { status: 400 }
+      );
+    }
+
+    const validPaymentMethods = ["cash", "card"];
+    if (paymentMethod && !validPaymentMethods.includes(paymentMethod)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid payment method" },
         { status: 400 }
       );
     }
@@ -206,6 +214,7 @@ export async function PATCH(request, context) {
         data: {
           ...(status && { status }),
           ...(paymentStatus && { paymentStatus }),
+          ...(paymentMethod && { paymentMethod }),
           ...(nextStatus === "cancelled" ? { stockRestored: true } : {}),
         },
         include: {

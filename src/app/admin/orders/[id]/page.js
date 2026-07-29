@@ -312,6 +312,7 @@ export default function OrderDetailPage() {
   const [toast, setToast] = useState({ msg: "", type: "success" });
   const [showReceipt, setShowReceipt] = useState(false);
   const [confirmStatus, setConfirmStatus] = useState(null); // newStatus string
+  const [showPaidChoice, setShowPaidChoice] = useState(false);
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -359,19 +360,24 @@ export default function OrderDetailPage() {
     }
   };
 
-  const updatePayment = async (paymentStatus) => {
+  const updatePayment = async (paymentStatus, paymentMethod) => {
     setUpdating(true);
     try {
       const token = localStorage.getItem("adminToken");
       const res = await fetch(`/api/orders/${order.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ paymentStatus }),
+        body: JSON.stringify({ paymentStatus, ...(paymentMethod && { paymentMethod }) }),
       });
       const data = await res.json();
       if (data.success) {
         setOrder(data.data);
-        showToast("Payment status updated");
+        setShowPaidChoice(false);
+        showToast(
+          paymentMethod
+            ? `Marked as Paid — ${paymentMethod === "card" ? "Card" : "Cash"}`
+            : "Payment status updated"
+        );
       } else {
         showToast(data.message || "Update failed", "error");
       }
@@ -490,7 +496,9 @@ export default function OrderDetailPage() {
             {/* Payment method */}
             <div className="text-right">
               <p className="text-xs text-stone-400 mb-1">Payment Method</p>
-              <p className="font-bold text-stone-700 capitalize">{order.paymentMethod}</p>
+              <p className="font-bold text-stone-700 capitalize">
+                {order.paymentMethod === "card" ? "💳" : "💵"} {order.paymentMethod}
+              </p>
             </div>
           </div>
 
@@ -675,20 +683,59 @@ export default function OrderDetailPage() {
             <div className="bg-white rounded-2xl border border-stone-200 p-6">
               <h3 className="font-black text-stone-800 mb-4 text-sm">Payment</h3>
               <div className="flex flex-col gap-2">
-                {["pending", "paid", "failed"].filter((s) => s !== order.paymentStatus).map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => updatePayment(s)}
-                    disabled={updating}
-                    className={`w-full px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all disabled:opacity-50 ${
-                      s === "paid"   ? "border-green-200 text-green-700 hover:bg-green-50" :
-                      s === "failed" ? "border-red-200 text-red-600 hover:bg-red-50" :
-                                       "border-stone-200 text-stone-600 hover:bg-stone-50"
-                    }`}
-                  >
-                    Mark as {PAYMENT_META[s]?.label}
-                  </button>
-                ))}
+                {showPaidChoice ? (
+                  <>
+                    <p className="text-xs font-semibold text-stone-500 mb-1">How did the customer pay?</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => updatePayment("paid", "cash")}
+                        disabled={updating}
+                        className="flex-1 px-4 py-2.5 rounded-xl border border-green-200 text-sm font-semibold text-green-700 hover:bg-green-50 transition-all disabled:opacity-50"
+                      >
+                        💵 Cash
+                      </button>
+                      <button
+                        onClick={() => updatePayment("paid", "card")}
+                        disabled={updating}
+                        className="flex-1 px-4 py-2.5 rounded-xl border border-green-200 text-sm font-semibold text-green-700 hover:bg-green-50 transition-all disabled:opacity-50"
+                      >
+                        💳 Card
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => setShowPaidChoice(false)}
+                      disabled={updating}
+                      className="w-full px-4 py-2 rounded-xl text-xs font-semibold text-stone-400 hover:text-stone-600 transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {order.paymentStatus !== "paid" && (
+                      <button
+                        onClick={() => setShowPaidChoice(true)}
+                        disabled={updating}
+                        className="w-full px-4 py-2.5 rounded-xl border border-green-200 text-sm font-semibold text-green-700 hover:bg-green-50 transition-all disabled:opacity-50"
+                      >
+                        Mark as Paid
+                      </button>
+                    )}
+                    {["pending", "failed"].filter((s) => s !== order.paymentStatus).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => updatePayment(s)}
+                        disabled={updating}
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all disabled:opacity-50 ${
+                          s === "failed" ? "border-red-200 text-red-600 hover:bg-red-50" :
+                                           "border-stone-200 text-stone-600 hover:bg-stone-50"
+                        }`}
+                      >
+                        Mark as {PAYMENT_META[s]?.label}
+                      </button>
+                    ))}
+                  </>
+                )}
               </div>
             </div>
 

@@ -1,3 +1,5 @@
+'use client';
+
 const UNSIZED_EXTS = /\.(heic|heif|gif|svg|webp)$/i;
 
 export default function r2Loader({ src, width }) {

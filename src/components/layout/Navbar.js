@@ -115,7 +115,7 @@ export default function Navbar() {
             {/* ─── LOGO ─────────────────────────── */}
             <Link href="/" className="flex items-center gap-2 flex-shrink-0 group">
               <Image
-                src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_400/branding/alsadeq-logo-nobg"
+                src="https://pub-233449cd95484981a46fd69460d65453.r2.dev/branding/alsadeq-logo-nobg.png"
                 alt="Al Sadeq Spices"
                 width={100}
                 height={100}

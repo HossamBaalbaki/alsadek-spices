@@ -58,7 +58,7 @@ function OrderConfirmationContent() {
     return (
       <div className="container py-20 text-center">
         <div className="flex justify-center mb-4 animate-bounce">
-          <Image src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_300/branding/alsadeq-logo-nobg" alt="Al Sadeq Spices" width={80} height={80} className="object-contain" />
+          <Image src="https://pub-233449cd95484981a46fd69460d65453.r2.dev/branding/alsadeq-logo-nobg.png" alt="Al Sadeq Spices" width={80} height={80} className="object-contain" />
         </div>
         <p className="text-stone-500">
           {isArabic ? "جاري التحميل..." : "Loading..."}
@@ -136,7 +136,7 @@ function OrderConfirmationContent() {
         <div className="container text-center">
           <div className="flex justify-center mb-4">
             <Image
-              src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_300/branding/alsadeq-logo-nobg"
+              src="https://pub-233449cd95484981a46fd69460d65453.r2.dev/branding/alsadeq-logo-nobg.png"
               alt="Al Sadeq Spices"
               width={100}
               height={100}
@@ -491,7 +491,7 @@ export default function OrderConfirmationPage() {
           fallback={
             <div className="container py-20 text-center">
               <div className="flex justify-center mb-4 animate-bounce">
-          <Image src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_300/branding/alsadeq-logo-nobg" alt="Al Sadeq Spices" width={80} height={80} className="object-contain" />
+          <Image src="https://pub-233449cd95484981a46fd69460d65453.r2.dev/branding/alsadeq-logo-nobg.png" alt="Al Sadeq Spices" width={80} height={80} className="object-contain" />
         </div>
             </div>
           }

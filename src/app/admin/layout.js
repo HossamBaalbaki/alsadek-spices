@@ -28,7 +28,7 @@ export default function AdminLayout({ children }) {
     <div className="min-h-screen bg-stone-900 flex items-center justify-center">
       <div className="animate-pulse">
         <Image
-          src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_200/branding/alsadeq-logo-nobg"
+          src="https://pub-233449cd95484981a46fd69460d65453.r2.dev/branding/alsadeq-logo-nobg.png"
           alt="Al Sadeq Spices"
           width={100}
           height={100}
@@ -77,7 +77,7 @@ export default function AdminLayout({ children }) {
         <div className="flex items-center gap-3 p-4 border-b border-stone-700 flex-shrink-0 min-w-[16rem]">
           <div className="flex-shrink-0 bg-white rounded-xl p-1">
             <Image
-              src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_200/branding/alsadeq-logo-nobg"
+              src="https://pub-233449cd95484981a46fd69460d65453.r2.dev/branding/alsadeq-logo-nobg.png"
               alt="Al Sadeq Spices"
               width={44}
               height={44}

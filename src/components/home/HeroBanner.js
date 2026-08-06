@@ -149,7 +149,7 @@ export default function HeroBanner() {
                 <div className="flex justify-center mb-4 animate-bounce">
                   <div className="bg-white/90 rounded-3xl p-3 shadow-2xl shadow-black/30">
                     <Image
-                      src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_400/branding/alsadeq-logo-nobg"
+                      src="https://pub-233449cd95484981a46fd69460d65453.r2.dev/branding/alsadeq-logo-nobg.png"
                       alt="Al Sadeq Spices"
                       width={160}
                       height={160}

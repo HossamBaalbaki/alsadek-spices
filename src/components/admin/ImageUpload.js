@@ -3,8 +3,7 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 
-const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dltz3gpiy";
-const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "AlSadeq";
+function token() { return localStorage.getItem("adminToken") || ""; }
 
 export default function ImageUpload({ images = [], onChange, max = 5 }) {
   const [uploading, setUploading] = useState(false);
@@ -33,18 +32,17 @@ export default function ImageUpload({ images = [], onChange, max = 5 }) {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      fd.append("upload_preset", UPLOAD_PRESET);
       fd.append("folder", "alsadek");
 
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-        { method: "POST", body: fd }
-      );
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token()}` },
+        body: fd,
+      });
       const data = await res.json();
-      if (!data.secure_url) throw new Error(data.error?.message || "Upload failed");
+      if (!data.success) throw new Error(data.message || "Upload failed");
 
-      const optimized = data.secure_url.replace("/upload/", "/upload/f_auto,q_auto,w_1200/");
-      onChange([...validImages, optimized]);
+      onChange([...validImages, data.url]);
     } catch (err) {
       setError(err.message || "Upload failed. Try again.");
     } finally {
@@ -69,7 +67,6 @@ export default function ImageUpload({ images = [], onChange, max = 5 }) {
                 fill
                 className="object-cover"
                 sizes="96px"
-                unoptimized
               />
               <button
                 type="button"

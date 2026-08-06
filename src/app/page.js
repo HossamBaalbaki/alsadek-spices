@@ -158,7 +158,7 @@ export default function HomePage() {
             left-1/2 -translate-x-1/2 top-[5%]
             lg:left-auto lg:translate-x-0 lg:right-[6%] lg:top-[15%]">
             <Image
-              src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_500/branding/alsadeq-logo-nobg"
+              src="https://pub-233449cd95484981a46fd69460d65453.r2.dev/branding/alsadeq-logo-nobg.png"
               alt="Al Sadeq Spices"
               width={280}
               height={280}

@@ -87,7 +87,7 @@ export default function TrackOrderPage() {
             <div className="max-w-2xl mx-auto text-center">
               <div className="flex justify-center mb-5">
                 <Image
-                  src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_auto,w_300/branding/alsadeq-logo-nobg"
+                  src="https://pub-233449cd95484981a46fd69460d65453.r2.dev/branding/alsadeq-logo-nobg.png"
                   alt="Al Sadeq Spices"
                   width={90}
                   height={90}

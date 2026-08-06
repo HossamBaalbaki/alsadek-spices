@@ -21,7 +21,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
-      "connect-src 'self' https://api.cloudinary.com",
+      "connect-src 'self' https://api.cloudinary.com https://pub-233449cd95484981a46fd69460d65453.r2.dev",
       "frame-src https://maps.google.com https://www.google.com",
       "frame-ancestors 'none'",
     ].join("; "),
@@ -32,10 +32,16 @@ const allowedOrigin = process.env.NEXT_PUBLIC_SITE_URL || "";
 
 const nextConfig = {
   images: {
+    loader: "custom",
+    loaderFile: "./src/lib/r2-loader.js",
     remotePatterns: [
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
+      },
+      {
+        protocol: "https",
+        hostname: "pub-233449cd95484981a46fd69460d65453.r2.dev",
       },
     ],
   },

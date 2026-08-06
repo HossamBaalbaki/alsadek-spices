@@ -137,7 +137,7 @@ function ThermalReceipt({ order, onClose }) {
             {/* ── HEADER ── */}
             <div style={{ textAlign:"center", paddingBottom:"10px" }}>
               <img
-                src="https://res.cloudinary.com/dltz3gpiy/image/upload/q_auto,f_png,w_300/branding/alsadeq-logo-nobg"
+                src="https://pub-233449cd95484981a46fd69460d65453.r2.dev/branding/alsadeq-logo-nobg.png"
                 alt="Al Sadeq Spices"
                 style={{ width:"100px", height:"100px", objectFit:"contain", margin:"0 auto 4px" }}
               />
